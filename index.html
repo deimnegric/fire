@@ -16,6 +16,26 @@ th { background:#333; }
 .tutar { font-weight:bold; }
 .islem-btns { display:flex; gap:4px; justify-content:center; }
 .islem-btns button { width:auto; padding:4px 8px; }
+#grupToplamlari { 
+  margin-top:15px; 
+  background:#222; 
+  padding:10px; 
+  border-radius:6px; 
+  font-weight:bold; 
+  line-height:1.6;
+}
+#grupToplamlari .satir { 
+  display:flex; 
+  justify-content:space-between; 
+  border-bottom:1px solid #444; 
+  padding:2px 0;
+}
+#grupToplamlari .genel { 
+  border-top:2px solid #777; 
+  margin-top:8px; 
+  padding-top:4px; 
+  color:#ffcc00; 
+}
 </style>
 </head>
 <body>
@@ -54,6 +74,8 @@ th { background:#333; }
 </thead>
 <tbody></tbody>
 </table>
+
+<div id="grupToplamlari"></div>
 
 <script>
 let geciciUrunler = JSON.parse(localStorage.getItem("geciciUrunler")||"[]");
@@ -110,6 +132,30 @@ function listeleGecici(){
                     </td>`;
     tbody.appendChild(tr);
   });
+
+  // 🔸 Grup toplamlarını hesapla
+  const grupToplamlari = {};
+  let genelToplam = 0;
+
+  geciciUrunler.forEach(f=>{
+    const tutar = parseFloat(hesaplaTutar(f.fiyat,f.miktar,f.birim,f.yuzde));
+    if(!grupToplamlari[f.grup]) grupToplamlari[f.grup]=0;
+    grupToplamlari[f.grup]+=tutar;
+    genelToplam+=tutar;
+  });
+
+  const toplamDiv=document.getElementById("grupToplamlari");
+  toplamDiv.innerHTML="";
+  for(const [grup,tutar] of Object.entries(grupToplamlari)){
+    const satir=document.createElement("div");
+    satir.className="satir";
+    satir.innerHTML=`<span>${grup.toUpperCase()}</span><span>${tutar.toFixed(2)} TL</span>`;
+    toplamDiv.appendChild(satir);
+  }
+  const genel=document.createElement("div");
+  genel.className="satir genel";
+  genel.innerHTML=`<span>GENEL TOPLAM</span><span>${genelToplam.toFixed(2)} TL</span>`;
+  toplamDiv.appendChild(genel);
 }
 
 function düzenle(index){
