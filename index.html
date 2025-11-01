@@ -16,25 +16,25 @@ th { background:#333; }
 .tutar { font-weight:bold; }
 .islem-btns { display:flex; gap:4px; justify-content:center; }
 .islem-btns button { width:auto; padding:4px 8px; }
-#grupToplamlari { 
-  margin-top:15px; 
-  background:#222; 
-  padding:10px; 
-  border-radius:6px; 
-  font-weight:bold; 
+#grupToplamlari {
+  margin-top:15px;
+  background:#222;
+  padding:10px;
+  border-radius:6px;
+  font-weight:bold;
   line-height:1.6;
 }
-#grupToplamlari .satir { 
-  display:flex; 
-  justify-content:space-between; 
-  border-bottom:1px solid #444; 
+#grupToplamlari .satir {
+  display:flex;
+  justify-content:space-between;
+  border-bottom:1px solid #444;
   padding:2px 0;
 }
-#grupToplamlari .genel { 
-  border-top:2px solid #777; 
-  margin-top:8px; 
-  padding-top:4px; 
-  color:#ffcc00; 
+#grupToplamlari .genel {
+  border-top:2px solid #777;
+  margin-top:8px;
+  padding-top:4px;
+  color:#ffcc00;
 }
 </style>
 </head>
@@ -75,6 +75,7 @@ th { background:#333; }
 <tbody></tbody>
 </table>
 
+<!-- 🔸 Grup ve Genel Toplam Alanı -->
 <div id="grupToplamlari"></div>
 
 <script>
@@ -133,7 +134,7 @@ function listeleGecici(){
     tbody.appendChild(tr);
   });
 
-  // 🔸 Grup toplamlarını hesapla
+  // 🔸 Grup toplamlarını hesapla ve göster
   const grupToplamlari = {};
   let genelToplam = 0;
 
