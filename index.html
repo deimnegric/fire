@@ -118,8 +118,9 @@ function ekle(){
 function listeleGecici(){
   const tbody=document.querySelector("#geciciTablo tbody");
   tbody.innerHTML="";
+  
   geciciUrunler.forEach((f,index)=>{
-    const tutar=hesaplaTutar(f.fiyat,f.miktar,f.birim,f.yuzde);
+    const tutar = hesaplaTutar(f.fiyat,f.miktar,f.birim,f.yuzde);
     const tr = document.createElement("tr");
     tr.innerHTML = `<td class="kod-ad">${f.kod}<br>${f.ad}</td>
                     <td>${f.miktar} ${f.birim}</td>
@@ -140,22 +141,24 @@ function listeleGecici(){
 
   geciciUrunler.forEach(f=>{
     const tutar = parseFloat(hesaplaTutar(f.fiyat,f.miktar,f.birim,f.yuzde));
-    if(!grupToplamlari[f.grup]) grupToplamlari[f.grup]=0;
-    grupToplamlari[f.grup]+=tutar;
-    genelToplam+=tutar;
+    if(!grupToplamlari[f.grup]) grupToplamlari[f.grup] = 0;
+    grupToplamlari[f.grup] += tutar;
+    genelToplam += tutar;
   });
 
-  const toplamDiv=document.getElementById("grupToplamlari");
-  toplamDiv.innerHTML="";
+  const toplamDiv = document.getElementById("grupToplamlari");
+  toplamDiv.innerHTML = ""; // önce temizle
+
   for(const [grup,tutar] of Object.entries(grupToplamlari)){
-    const satir=document.createElement("div");
-    satir.className="satir";
-    satir.innerHTML=`<span>${grup.toUpperCase()}</span><span>${tutar.toFixed(2)} TL</span>`;
+    const satir = document.createElement("div");
+    satir.className = "satir";
+    satir.innerHTML = `<span>${grup.toUpperCase()}</span><span>${tutar.toFixed(2)} TL</span>`;
     toplamDiv.appendChild(satir);
   }
-  const genel=document.createElement("div");
-  genel.className="satir genel";
-  genel.innerHTML=`<span>GENEL TOPLAM</span><span>${genelToplam.toFixed(2)} TL</span>`;
+
+  const genel = document.createElement("div");
+  genel.className = "satir genel";
+  genel.innerHTML = `<span>GENEL TOPLAM</span><span>${genelToplam.toFixed(2)} TL</span>`;
   toplamDiv.appendChild(genel);
 }
 
