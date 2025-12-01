@@ -17,10 +17,10 @@ th { background:#333; }
 .islem-btns { display:flex; flex-direction:column; gap:4px; justify-content:center; }
 .islem-btns button { width:100%; padding:4px 8px; }
 .gecmis-row { display:none; background:#222; }
-tfoot td { padding:6px; font-weight:bold; text-align:left; }
 .adet { color:lime; font-weight:bold; }
 .gram { color:yellow; font-weight:bold; }
 .tutar500 { color:red; font-weight:bold; }
+tfoot td { padding:6px; font-weight:bold; text-align:left; }
 </style>
 </head>
 <body>
@@ -68,7 +68,7 @@ function listele(filterBaslangic="", filterBitis=""){
     // Ürünün geçmişini al
     let gecmisVar = f.gecmis && f.gecmis.length>0 ? f.gecmis : [{miktar: f.miktar, birim: f.birim, tarihSaat: f.tarihSaat}];
 
-    // Filtre uygulanmışsa sadece seçilen tarih aralığındaki geçmişleri al
+    // Filtre varsa sadece seçilen tarih aralığındaki geçmişleri al
     if(filterBaslangic || filterBitis){
       const bas = filterBaslangic ? new Date(filterBaslangic + "T00:00:00") : null;
       const bit = filterBitis ? new Date(filterBitis + "T23:59:59") : null;
@@ -80,11 +80,10 @@ function listele(filterBaslangic="", filterBitis=""){
         return true;
       });
 
-      // Filtreye uyan geçmiş yoksa ürün hiç eklenmesin
-      if(gecmisVar.length === 0) return;
+      if(gecmisVar.length === 0) return; // filtreye uymayan ürün tamamen gizlenir
     }
 
-    // Filtrelenmiş tutarı hesapla
+    // Filtrelenmiş tutar
     let toplamTutar = 0;
     gecmisVar.forEach(g=>{
       toplamTutar += parseFloat((f.fiyat * (g.birim==="adet"?g.miktar:g.miktar/1000) / (f.yuzde===1?1.01:f.yuzde===10?1.1:1.2)).toFixed(2));
@@ -103,16 +102,34 @@ function listele(filterBaslangic="", filterBitis=""){
                     <td>${f.fiyat}</td>
                     <td>${f.yuzde}%</td>
                     <td>${f.grup}</td>
-                    <td class="tutar">${toplamTutar.toFixed(2)}</td>
+                    <td class="tutar ${toplamTutar>500?'tutar500':''}">${toplamTutar.toFixed(2)}</td>
                     <td>${gecmisVar.map(g=>g.tarihSaat).join(", ")}</td>
                     <td class="islem-btns">
+                      <button onclick="toggleGecmis(${index})">+</button>
                       <button onclick="duzenle(${index})">Düzenle</button>
                       <button onclick="sil(${index})">Sil</button>
                     </td>`;
     tbody.appendChild(tr);
+
+    // Geçmiş satırları
+    gecmisVar.forEach((g,i)=>{
+      const tr2 = document.createElement("tr");
+      tr2.className="gecmis-row gecmis-"+index;
+      const miktarClass = g.birim==="adet"?"adet":"gram";
+      const tutarG = (f.fiyat * (g.birim==="adet"?g.miktar:g.miktar/1000) / (f.yuzde===1?1.01:f.yuzde===10?1.1:1.2)).toFixed(2);
+      tr2.innerHTML = `<td colspan="1"></td>
+                       <td class="${miktarClass}">${g.miktar}</td>
+                       <td style="display:none;">${g.birim}</td>
+                       <td>${f.fiyat}</td>
+                       <td>${f.yuzde}%</td>
+                       <td>${f.grup}</td>
+                       <td class="tutar ${tutarG>500?'tutar500':''}">${tutarG}</td>
+                       <td colspan="2">${g.tarihSaat}</td>`;
+      tbody.appendChild(tr2);
+    });
   });
 
-  // Grup toplamları ve genel toplam
+  // Grup ve genel toplamlar
   const grupDiv = document.getElementById("grupToplam");
   grupDiv.innerHTML = "";
   for(let g in grupToplam){
@@ -134,6 +151,11 @@ function temizleFiltre(){
   document.getElementById("baslangic").value="";
   document.getElementById("bitis").value="";
   listele();
+}
+
+function toggleGecmis(index){
+  const rows = document.querySelectorAll(".gecmis-"+index);
+  rows.forEach(r=> r.style.display = r.style.display==="table-row"?"none":"table-row");
 }
 
 function hesaplaCiro(){
