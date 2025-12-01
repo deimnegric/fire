@@ -64,7 +64,6 @@ tfoot td { padding:6px; font-weight:bold; text-align:left; font-size:0.9rem; }
 <script>
 let genelToplam = 0;
 
-// Listeleme ve filtreleme
 function listele(filterBaslangic="", filterBitis=""){
   const tbody = document.querySelector("#detayTablo tbody");
   tbody.innerHTML = "";
@@ -73,23 +72,19 @@ function listele(filterBaslangic="", filterBitis=""){
   let grupToplam = {};
   genelToplam = 0;
 
-  // Tarih filtrelerini ayarla
   const bas = filterBaslangic ? new Date(filterBaslangic + "T00:00:00") : null;
   const bit = filterBitis ? new Date(filterBitis + "T23:59:59") : null;
 
   fireDetay.forEach((f,index)=>{
-    // Ürünün geçmişleri
     let gecmisVar = f.gecmis ? f.gecmis : [{miktar:f.miktar, birim:f.birim, tarihSaat:f.tarihSaat}];
-
-    // Tarih filtresi uygula
     gecmisVar = gecmisVar.filter(g=>{
       const tarih = new Date(g.tarihSaat);
-      if(bas && tarih<bas) return false;
-      if(bit && tarih>bit) return false;
+      if(bas && tarih < bas) return false;
+      if(bit && tarih > bit) return false;
       return true;
     });
 
-    if(gecmisVar.length===0) return; // filtrelenmiş ürün yoksa atla
+    if(gecmisVar.length === 0) return; // filtreye uymayan ürünleri tamamen atla
 
     // Toplam tutar hesapla
     let toplamTutar = 0;
@@ -136,7 +131,7 @@ function listele(filterBaslangic="", filterBitis=""){
     });
   });
 
-  // Grup toplamları
+  // Grup ve genel toplamları göster
   const grupDiv = document.getElementById("grupToplam");
   grupDiv.innerHTML = "";
   for(let g in grupToplam){
@@ -144,11 +139,9 @@ function listele(filterBaslangic="", filterBitis=""){
     span.textContent = `${g}: ${grupToplam[g].toFixed(2)} TL`;
     grupDiv.appendChild(span);
   }
-
   document.getElementById("genelToplam").textContent = `Genel Toplam: ${genelToplam.toFixed(2)} TL`;
 }
 
-// Buton fonksiyonları
 function filtrele(){
   const bas = document.getElementById("baslangic").value;
   const bit = document.getElementById("bitis").value;
@@ -199,6 +192,7 @@ function sil(index){
   }
 }
 
+// Sayfa yüklenince tüm ürünleri listele
 listele();
 </script>
 </body>
