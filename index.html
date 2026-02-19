@@ -3,211 +3,166 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fire Ürün Girişi</title>
+<title>Fire Takip</title>
 <style>
-body { background:#1a1a1a; color:white; font-family:Arial,sans-serif; margin:10px; }
-h2 { text-align:center; }
-input, select, button { padding:6px; margin:6px 0; border-radius:4px; border:none; width:100%; }
-button { cursor:pointer; background:#000; color:white; }
-table { width:100%; border-collapse: collapse; margin-top:10px; }
-th, td { border:1px solid #555; padding:6px; text-align:center; vertical-align:top; }
-th { background:#333; }
-.kod-ad { display:flex; flex-direction:column; font-weight:bold; }
-.tutar { font-weight:bold; }
-.islem-btns { display:flex; gap:4px; justify-content:center; }
-.islem-btns button { width:auto; padding:4px 8px; }
-#grupToplamlari {
-  margin-top:15px;
-  background:#222;
-  padding:10px;
-  border-radius:6px;
-  font-weight:bold;
-  line-height:1.6;
-}
-#grupToplamlari .satir {
-  display:flex;
-  justify-content:space-between;
-  border-bottom:1px solid #444;
-  padding:2px 0;
-}
-#grupToplamlari .genel {
-  border-top:2px solid #777;
-  margin-top:8px;
-  padding-top:4px;
-  color:#ffcc00;
+*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif;}
+body{background:#f4f6f8;padding:20px;color:#1e293b;display:flex;justify-content:center;}
+.container{max-width:1200px;width:100%;}
+h1{text-align:center;margin-bottom:20px;color:#111827;}
+.card{padding:15px;border-radius:12px;margin-bottom:20px;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+.card-red{background:#fee2e2;}
+.card-green{background:#dcfce7;}
+input, select, button{padding:6px;border-radius:6px;border:1px solid #ccc;margin:2px;font-size:14px;}
+button{cursor:pointer;background:#6366f1;color:white;border:none;}
+.flex{display:flex;gap:5px;flex-wrap:wrap;}
+.flex-center{display:flex;justify-content:center;gap:5px;align-items:center;}
+.flex-col{display:flex;flex-direction:column;gap:4px;}
+.flex-row{display:flex;gap:5px;align-items:center;flex-wrap:wrap;}
+.fire-row{display:flex;justify-content:space-between;align-items:center;background:#fff;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.05);margin-bottom:5px;padding:5px;flex-wrap:wrap;}
+.fire-left{display:flex;flex-direction:column;}
+.fire-right{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px;}
+.fire-toggle{cursor:pointer;margin-left:5px;font-size:12px;}
+.fire-actions{display:flex;gap:5px;align-items:center;font-size:14px;}
+.fire-actions span{cursor:pointer;padding:2px 4px;border-radius:4px;background:#ddd;}
+.fire-actions span:hover{background:#bbb;}
+.fire-details{font-size:12px;margin-top:4px;color:#555;display:none;}
+.net-card{margin-top:10px;padding:12px;border-radius:12px;font-weight:600;text-align:center;background:#e5e7eb;}
+@media(max-width:768px){
+  .fire-right{flex-direction:column;align-items:flex-start;}
 }
 </style>
 </head>
 <body>
-<h2>Fire Ürün Girişi</h2>
+<div class="container">
+<h1>Fire Takip</h1>
 
-<div>
-  <input type="text" id="urunKod" placeholder="Ürün Kodu">
-  <input type="text" id="urunAd" placeholder="Ürün Adı">
-  <input type="number" id="miktar" placeholder="Miktar">
-  <select id="birim">
-    <option value="adet">Adet</option>
-    <option value="gram">Gram</option>
-  </select>
-  <input type="number" id="fiyat" placeholder="Fiyat">
-  <select id="yuzde">
-    <option value="1">1%</option>
-    <option value="10">10%</option>
-    <option value="20">20%</option>
-  </select>
-  <select id="grup">
-    <option value="kırmızı et">Kırmızı Et</option>
-    <option value="tavuk">Tavuk</option>
-    <option value="skt">SKT</option>
-    <option value="mağaza">Mağaza</option>
-    <option value="spot">Spot</option>
-    <option value="meyve sebze">Meyve Sebze</option>
-  </select>
-  <button onclick="ekle()">Ekle</button>
-  <button onclick="kaydet()">Kaydet</button>
-  <button onclick="location.href='fire_detay.html'">Fire Detay Sayfası</button>
+<!-- Fire Giriş -->
+<div class="card">
+  <h3>Fire Girişi</h3>
+  <div class="flex-col" id="fireInputArea">
+    <div class="flex-row">
+      <input type="text" id="kod" placeholder="Kod">
+      <input type="text" id="ad" placeholder="Ürün Adı">
+    </div>
+    <div class="flex-row">
+      <select id="type"><option value="adet">Adet</option><option value="gram">Gram</option></select>
+      <input type="number" id="miktar" placeholder="Miktar">
+    </div>
+    <div class="flex-row">
+      <input type="number" id="fiyat" placeholder="Birim Fiyat">
+      <select id="oran"><option value="1">1%</option><option value="10">10%</option><option value="20">20%</option></select>
+    </div>
+    <div class="flex-row">
+      <select id="grup"><option value="Kırmızı Et">Kırmızı Et</option><option value="Tavuk">Tavuk</option><option value="SKT">SKT</option><option value="Mağaza">Mağaza</option><option value="Spot">Spot</option><option value="Meyve Sebze">Meyve Sebze</option></select>
+    </div>
+    <div class="flex-center"><button onclick="ekleKayıtsız()">Ekle</button></div>
+  </div>
 </div>
 
-<table id="geciciTablo">
-<thead>
-<tr><th>Kod / Ad</th><th>Miktar</th><th>Fiyat</th><th>%</th><th>Grup</th><th>Tutar</th><th>İşlem</th></tr>
-</thead>
-<tbody></tbody>
-</table>
+<!-- Kayıtsız Fireler -->
+<div class="card card-red">
+  <h3>Kayıtsız Fireler</h3>
+  <div id="kayitsizList"></div>
+  <div id="kayitsizTotals" class="net-card"></div>
+  <div class="flex-center"><button onclick="kaydet()">Kaydet</button></div>
+</div>
 
-<!-- 🔸 Grup ve Genel Toplam Alanı -->
-<div id="grupToplamlari"></div>
+<!-- Kayıtlı Fireler -->
+<div class="card card-green">
+  <h3>Kayıtlı Fireler</h3>
+  <div id="kayitliList"></div>
+  <div id="kayitliTotals" class="net-card"></div>
+</div>
+
+<!-- Tüm Verileri Sil Butonu -->
+<div class="flex-center" style="margin-top:20px;">
+  <button style="background:#ef4444;color:white;" onclick="sifrelisil()">Tüm Verileri Sil</button>
+</div>
 
 <script>
-let geciciUrunler = JSON.parse(localStorage.getItem("geciciUrunler")||"[]");
-listeleGecici();
+let kayitsiz = JSON.parse(localStorage.getItem("kayitsiz")) || [];
+let kayitli = JSON.parse(localStorage.getItem("kayitli")) || [];
 
-function hesaplaTutar(fiyat,miktar,birim,yuzde){
-  const yuzdeOrani = yuzde===1?1.01:yuzde===10?1.1:1.2;
-  let miktarHesap = birim==="adet"? miktar : miktar/1000;
-  return (fiyat*miktarHesap/yuzdeOrani).toFixed(2);
-}
+function tarih() {const d=new Date();return d.getDate().toString().padStart(2,"0")+"."+ (d.getMonth()+1).toString().padStart(2,"0");}
 
-function ekle(){
-  const kod=document.getElementById("urunKod").value.trim();
-  const ad=document.getElementById("urunAd").value.trim();
+function ekleKayıtsız(){
+  const kod=document.getElementById("kod").value.trim();
+  const ad=document.getElementById("ad").value.trim();
+  const type=document.getElementById("type").value;
   const miktar=parseFloat(document.getElementById("miktar").value);
-  const birim=document.getElementById("birim").value;
   const fiyat=parseFloat(document.getElementById("fiyat").value);
-  const yuzde=parseInt(document.getElementById("yuzde").value);
+  const oran=parseInt(document.getElementById("oran").value);
   const grup=document.getElementById("grup").value;
-
-  if(!kod || !ad || !miktar || !fiyat){ alert("Tüm alanları doldurun!"); return; }
-
-  const index=geciciUrunler.findIndex(f=>f.kod===kod);
-  if(index>=0){
-    geciciUrunler[index].miktar+=miktar;
-  } else {
-    geciciUrunler.push({kod,ad,miktar,birim,fiyat,yuzde,grup});
-  }
-
-  localStorage.setItem("geciciUrunler", JSON.stringify(geciciUrunler));
-  listeleGecici();
-
-  document.getElementById("urunKod").value="";
-  document.getElementById("urunAd").value="";
-  document.getElementById("miktar").value="";
-  document.getElementById("fiyat").value="";
-}
-
-function listeleGecici(){
-  const tbody=document.querySelector("#geciciTablo tbody");
-  tbody.innerHTML="";
+  if(!kod||!ad||isNaN(miktar)||isNaN(fiyat))return;
   
-  geciciUrunler.forEach((f,index)=>{
-    const tutar = hesaplaTutar(f.fiyat,f.miktar,f.birim,f.yuzde);
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td class="kod-ad">${f.kod}<br>${f.ad}</td>
-                    <td>${f.miktar} ${f.birim}</td>
-                    <td>${f.fiyat}</td>
-                    <td>${f.yuzde}%</td>
-                    <td>${f.grup}</td>
-                    <td class="tutar">${tutar}</td>
-                    <td class="islem-btns">
-                      <button onclick="düzenle(${index})">Düzenle</button>
-                      <button onclick="sil(${index})">Sil</button>
-                    </td>`;
-    tbody.appendChild(tr);
+  const ayni=kayitsiz.find(x=>x.kod===kod||x.ad===ad);
+  if(ayni){
+    if(!ayni.details) ayni.details=[{miktar:ayni.miktar,fiyat:ayni.fiyat,oran:ayni.oran}];
+    ayni.details.push({miktar,fiyat,oran});
+    ayni.miktar+=miktar; ayni.fiyat=fiyat; ayni.oran=oran; ayni.grup=grup; ayni.type=type;
+  } else kayitsiz.push({tarih:tarih(),kod,ad,type,miktar,fiyat,oran,grup});
+  localStorage.setItem("kayitsiz",JSON.stringify(kayitsiz));
+  renderKayitsiz(); sifirlaGiris();
+}
+
+function sifirlaGiris(){document.getElementById("kod").value="";document.getElementById("ad").value="";document.getElementById("miktar").value="";document.getElementById("fiyat").value="";document.getElementById("oran").value="1";document.getElementById("grup").value="Kırmızı Et";}
+
+function renderKayitsiz(){
+  const list=document.getElementById("kayitsizList"); list.innerHTML=""; let toplam=0; const grupToplam={};
+  kayitsiz.forEach((x,index)=>{
+    let tutar = x.type==="adet"? x.miktar*x.fiyat/(1+x.oran/100) : (x.miktar/1000)*x.fiyat/(1+x.oran/100);
+    toplam+=tutar; grupToplam[x.grup]=(grupToplam[x.grup]||0)+tutar;
+    
+    const div=document.createElement("div"); div.className="fire-row";
+    let detayToggle=""; let detayHTML="";
+    if(x.details){ detayToggle=`<span class="fire-toggle" onclick="toggleDetails(${index},'kayitsiz')">▾</span>`;
+      detayHTML=`<div class="fire-details" id="details-kayitsiz-${index}">${x.details.map(d=>`${d.miktar} x ${d.fiyat}₺ / %${d.oran}`).join("<br>")}</div>`;}
+    
+    div.innerHTML=`<div class="fire-left"><span>${x.tarih}</span><span>${x.kod} ${x.ad}${detayToggle}</span></div>
+    <div class="fire-right"><span>${x.miktar} ${x.type}</span><span>${x.fiyat}₺</span><span>%${x.oran}</span><span>${tutar.toFixed(2)}₺</span><span>${x.grup}</span>
+    <div class="fire-actions"><span onclick="editFire(${index},'kayitsiz')">✎</span><span onclick="deleteFire(${index},'kayitsiz')">×</span></div></div>
+    ${detayHTML}`;
+    list.appendChild(div);
   });
+  let totalsHTML=""; for(let g in grupToplam) totalsHTML+=`${g}: ${grupToplam[g].toFixed(2)} ₺<br>`; totalsHTML+=`Toplam: ${toplam.toFixed(2)} ₺`;
+  document.getElementById("kayitsizTotals").innerHTML=totalsHTML;
+}
 
-  // 🔸 Grup toplamlarını hesapla ve göster
-  const grupToplamlari = {};
-  let genelToplam = 0;
+function toggleDetails(i,k){const d=document.getElementById(`details-${k}-${i}`); if(d)d.style.display=d.style.display==="none"?"block":"none";}
 
-  geciciUrunler.forEach(f=>{
-    const tutar = parseFloat(hesaplaTutar(f.fiyat,f.miktar,f.birim,f.yuzde));
-    if(!grupToplamlari[f.grup]) grupToplamlari[f.grup] = 0;
-    grupToplamlari[f.grup] += tutar;
-    genelToplam += tutar;
+function deleteFire(i,k){ if(k==="kayitsiz") kayitsiz.splice(i,1); else kayitli.splice(i,1); localStorage.setItem(k,JSON.stringify(k==="kayitsiz"?kayitsiz:kayitli)); renderKayitsiz(); renderKayitli();}
+
+function editFire(i,k){ const arr=k==="kayitsiz"?kayitsiz:kayitli; const item=arr[i]; document.getElementById("kod").value=item.kod; document.getElementById("ad").value=item.ad; document.getElementById("miktar").value=item.miktar; document.getElementById("fiyat").value=item.fiyat; document.getElementById("oran").value=item.oran; document.getElementById("grup").value=item.grup; arr.splice(i,1); localStorage.setItem(k,JSON.stringify(arr)); renderKayitsiz(); renderKayitli();}
+
+function kaydet(){ kayitsiz.forEach(x=>{ const ayni=kayitli.find(y=>y.kod===x.kod||y.ad===x.ad); if(ayni){ if(!ayni.details) ayni.details=[{miktar:ayni.miktar,fiyat:ayni.fiyat,oran:ayni.oran}]; if(x.details) ayni.details.push(...x.details); else ayni.details.push({miktar:x.miktar,fiyat:x.fiyat,oran:x.oran}); ayni.miktar+=x.miktar; ayni.fiyat=x.fiyat; ayni.oran=x.oran; ayni.grup=x.grup; ayni.type=x.type;} else kayitli.push({...x});}); kayitsiz=[]; localStorage.setItem("kayitsiz",JSON.stringify(kayitsiz)); localStorage.setItem("kayitli",JSON.stringify(kayitli)); renderKayitsiz(); renderKayitli();}
+
+function renderKayitli(){ const list=document.getElementById("kayitliList"); list.innerHTML=""; let toplam=0; const grupToplam={};
+  kayitli.forEach((x,index)=>{ let tutar=x.type==="adet"? x.miktar*x.fiyat/(1+x.oran/100) : (x.miktar/1000)*x.fiyat/(1+x.oran/100); toplam+=tutar; grupToplam[x.grup]=(grupToplam[x.grup]||0)+tutar; const div=document.createElement("div"); div.className="fire-row";
+    let detayToggle=""; let detayHTML=""; if(x.details){ detayToggle=`<span class="fire-toggle" onclick="toggleDetails(${index},'kayitli')">▾</span>`; detayHTML=`<div class="fire-details" id="details-kayitli-${index}">${x.details.map(d=>`${d.miktar} x ${d.fiyat}₺ / %${d.oran}`).join("<br>")}</div>`;}
+    div.innerHTML=`<div class="fire-left"><span>${x.tarih}</span><span>${x.kod} ${x.ad}${detayToggle}</span></div>
+    <div class="fire-right"><span>${x.miktar} ${x.type}</span><span>${x.fiyat}₺</span><span>%${x.oran}</span><span>${tutar.toFixed(2)}₺</span><span>${x.grup}</span>
+    <div class="fire-actions"><span onclick="editFire(${index},'kayitli')">✎</span><span onclick="deleteFire(${index},'kayitli')">×</span></div></div>
+    ${detayHTML}`; list.appendChild(div);
   });
+  let totalsHTML=""; for(let g in grupToplam) totalsHTML+=`${g}: ${grupToplam[g].toFixed(2)} ₺<br>`; totalsHTML+=`Toplam: ${toplam.toFixed(2)} ₺`; document.getElementById("kayitliTotals").innerHTML=totalsHTML;
+}
 
-  const toplamDiv = document.getElementById("grupToplamlari");
-  toplamDiv.innerHTML = ""; // önce temizle
-
-  for(const [grup,tutar] of Object.entries(grupToplamlari)){
-    const satir = document.createElement("div");
-    satir.className = "satir";
-    satir.innerHTML = `<span>${grup.toUpperCase()}</span><span>${tutar.toFixed(2)} TL</span>`;
-    toplamDiv.appendChild(satir);
+function sifrelisil(){
+  const sifre = prompt("Tüm verileri silmek için şifreyi girin:");
+  if(sifre==="2407"){
+    localStorage.removeItem("kayitsiz");
+    localStorage.removeItem("kayitli");
+    kayitsiz=[];
+    kayitli=[];
+    renderKayitsiz();
+    renderKayitli();
+    alert("Tüm veriler silindi!");
+  } else {
+    alert("Şifre yanlış!");
   }
-
-  const genel = document.createElement("div");
-  genel.className = "satir genel";
-  genel.innerHTML = `<span>GENEL TOPLAM</span><span>${genelToplam.toFixed(2)} TL</span>`;
-  toplamDiv.appendChild(genel);
 }
 
-function düzenle(index){
-  const f=geciciUrunler[index];
-  document.getElementById("urunKod").value=f.kod;
-  document.getElementById("urunAd").value=f.ad;
-  document.getElementById("miktar").value=f.miktar;
-  document.getElementById("fiyat").value=f.fiyat;
-  document.getElementById("yuzde").value=f.yuzde;
-  document.getElementById("grup").value=f.grup;
-  document.getElementById("birim").value=f.birim;
-  geciciUrunler.splice(index,1);
-  localStorage.setItem("geciciUrunler", JSON.stringify(geciciUrunler));
-  listeleGecici();
-}
-
-function sil(index){
-  if(confirm("Bu ürünü silmek istediğinize emin misiniz?")){
-    geciciUrunler.splice(index,1);
-    localStorage.setItem("geciciUrunler", JSON.stringify(geciciUrunler));
-    listeleGecici();
-  }
-}
-
-function kaydet(){
-  if(geciciUrunler.length===0){ alert("Önce ürün ekleyin!"); return; }
-  let fireDetay = JSON.parse(localStorage.getItem("fireDetay")||"[]");
-  const tarihSaat = new Date().toLocaleString();
-
-  geciciUrunler.forEach(f=>{
-    const index = fireDetay.findIndex(fd=>fd.kod===f.kod);
-    if(index>=0){
-      fireDetay[index].miktar += f.miktar;
-      if(!fireDetay[index].gecmis) fireDetay[index].gecmis = [];
-      fireDetay[index].gecmis.push({miktar:f.miktar,birim:f.birim,tarihSaat});
-    } else {
-      fireDetay.push({...f, tarihSaat, gecmis:[{miktar:f.miktar,birim:f.birim,tarihSaat}]});
-    }
-  });
-
-  localStorage.setItem("fireDetay",JSON.stringify(fireDetay));
-
-  // Ekranı sıfırlama ve localStorage güncelleme
-  geciciUrunler = [];
-  localStorage.setItem("geciciUrunler", JSON.stringify(geciciUrunler));
-  listeleGecici();
-  alert("Fire Detay sayfasına aktarıldı ve ekran temizlendi!");
-}
+renderKayitsiz(); renderKayitli();
 </script>
 </body>
 </html>
