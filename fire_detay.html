@@ -1,198 +1,373 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fire Detay</title>
-<style>
-body { background:#1a1a1a; color:white; font-family:Arial,sans-serif; margin:10px; }
-h2 { text-align:center; }
-input, button { padding:6px; margin:6px 0; border-radius:4px; border:none; }
-button { cursor:pointer; background:#000; color:white; }
-table { width:100%; border-collapse: collapse; margin-top:10px; }
-th, td { border:1px solid #555; padding:6px; text-align:center; vertical-align:middle; }
-th { background:#333; }
-.kod-ad { display:flex; flex-direction:column; font-weight:bold; }
-.tutar { font-weight:bold; }
-.islem-btns { display:flex; flex-direction:column; gap:4px; justify-content:center; }
-.islem-btns button { width:100%; padding:4px 8px; }
-.gecmis-row { display:none; background:#222; }
-.adet { color:lime; font-weight:bold; }
-.gram { color:yellow; font-weight:bold; }
-.tutar500 { color:red; font-weight:bold; }
-tfoot td { padding:6px; font-weight:bold; text-align:left; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atatürk Cd. Fire Takip</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .animate-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 </head>
-<body>
-<h2>Fire Detay</h2>
+<body class="bg-gray-50 text-gray-900 pb-20">
 
-<div style="display:flex; gap:10px; flex-wrap:wrap;">
-  <input type="date" id="baslangic">
-  <input type="date" id="bitis">
-  <button onclick="filtrele()">Filtrele</button>
-  <button onclick="temizleFiltre()">Tümünü Göster</button>
-</div>
+    <div id="app" class="max-w-xl mx-auto p-4 md:p-6 space-y-6">
+        <!-- Başlık Bölümü -->
+        <div class="flex justify-between items-start px-2">
+            <div>
+                <h1 class="text-3xl font-black tracking-tighter text-gray-900 uppercase leading-none">ATATÜRK CD.</h1>
+                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] mt-1">Fire Takip Sistemi</p>
+                <p id="storage-status" class="text-[9px] text-blue-500 font-bold uppercase tracking-widest mt-2">Cihaz Belleğine Kaydediliyor</p>
+            </div>
+            <div class="text-right">
+                <span class="text-[10px] font-black text-orange-500 uppercase block">Bekleyen</span>
+                <span id="unregistered-total" class="text-2xl font-black text-orange-600 tabular-nums leading-none">0.00₺</span>
+            </div>
+        </div>
 
-<table id="detayTablo">
-<thead>
-<tr><th>Kod / Ad</th><th>Miktar</th><th style="display:none;">Birim</th><th>Fiyat</th><th>%</th><th>Grup</th><th>Tutar</th><th>Tarih</th><th>İşlem</th></tr>
-</thead>
-<tbody></tbody>
-<tfoot>
-<tr>
-  <td colspan="9">
-    <div id="grupToplam" style="display:flex; flex-wrap:wrap; gap:20px; margin-bottom:6px;"></div>
-    <div id="genelToplam" style="color:#ffff99; font-weight:bold; margin-bottom:6px;"></div>
-    <div style="display:flex; align-items:center; gap:6px;">
-      Ciro: <input type="number" id="ciro" style="width:100px;">
-      <button onclick="hesaplaCiro()">Hesapla</button>
-      <span id="ciroSonuc" style="color:#ff6666; font-weight:bold; margin-left:10px;"></span>
+        <!-- Kayıt Formu -->
+        <div class="bg-white rounded-[2.5rem] shadow-xl shadow-gray-200/50 border border-gray-100 p-6">
+            <form id="fire-form" class="space-y-3">
+                <input type="hidden" id="edit-id">
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="text" id="code" placeholder="Kod" class="bg-gray-50 p-4 rounded-2xl outline-none font-bold text-sm" required>
+                    <input type="text" id="productName" placeholder="Ürün Adı" class="bg-gray-50 p-4 rounded-2xl outline-none font-bold text-sm" required>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2">
+                    <select id="unitType" class="bg-gray-50 p-4 rounded-2xl font-bold text-sm outline-none">
+                        <option value="gram">Gr/Kg</option>
+                        <option value="Adet">Adet</option>
+                    </select>
+                    <input type="number" id="amount" placeholder="Miktar" class="col-span-2 bg-gray-50 p-4 rounded-2xl outline-none font-bold" required>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2">
+                    <input type="number" step="0.01" id="unitPrice" placeholder="Birim Fiyat" class="col-span-2 bg-gray-50 p-4 rounded-2xl outline-none font-black text-blue-600" required>
+                    <select id="kdv" class="bg-gray-50 p-4 rounded-2xl font-black text-orange-600 outline-none">
+                        <option value="1">%1</option>
+                        <option value="10">%10</option>
+                        <option value="20">%20</option>
+                    </select>
+                </div>
+
+                <select id="category" class="w-full bg-gray-50 p-4 rounded-2xl font-bold text-sm outline-none appearance-none">
+                    <option value="Kırmızı Et">Kırmızı Et</option>
+                    <option value="Tavuk">Tavuk</option>
+                    <option value="SKT">SKT Ürün</option>
+                    <option value="Mağaza">Mağaza</option>
+                    <option value="Spot">Spot</option>
+                    <option value="Meyve Sebze">Meyve Sebze</option>
+                </select>
+
+                <button type="submit" id="submit-btn" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-black tracking-widest transition-all active:scale-95 shadow-lg uppercase text-sm">
+                    LİSTEYE GÖNDER
+                </button>
+                <button type="button" id="cancel-btn" class="hidden w-full text-[10px] font-black text-gray-400 uppercase">VAZGEÇ</button>
+            </form>
+        </div>
+
+        <!-- Bekleyen Kayıtlar Listesi -->
+        <div class="space-y-4">
+            <h2 class="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2 flex items-center gap-2">
+                <span class="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></span>
+                Bekleyen Kayıtlar
+            </h2>
+            <div id="unregistered-list" class="space-y-3">
+                <!-- Dinamik olarak dolacak -->
+            </div>
+
+            <div id="register-all-container" class="hidden bg-orange-50 rounded-[2rem] p-6 space-y-4 border border-orange-100">
+                <div class="flex justify-between items-center border-b border-orange-200/50 pb-3">
+                    <span class="text-xs font-black text-orange-900 uppercase">TOPLAM TUTAR</span>
+                    <span id="unregistered-total-footer" class="text-xl font-black text-orange-600">0.00₺</span>
+                </div>
+                <button onclick="registerAll()" class="w-full py-4 bg-orange-500 text-white rounded-2xl font-black text-sm tracking-widest shadow-xl shadow-orange-200 uppercase transition-all active:scale-95">
+                    ARŞİVE AKTAR
+                </button>
+            </div>
+        </div>
+
+        <!-- Arşiv Listesi -->
+        <div id="archive-section" class="pt-6 space-y-4 hidden">
+            <h2 class="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Onaylı Arşiv</h2>
+            <div id="registered-list" class="space-y-2">
+                <!-- Dinamik olarak dolacak -->
+            </div>
+
+            <!-- Sadeleştirilmiş Kategori Analizi -->
+            <div id="archive-summary" class="bg-white rounded-[2rem] p-6 space-y-4 shadow-sm border border-gray-100">
+                <div class="flex justify-between items-center mb-2">
+                    <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Kategori Analizi</h4>
+                    <span id="archive-total" class="text-lg font-black text-slate-900 tabular-nums">0.00₺</span>
+                </div>
+                <div id="category-stats" class="grid grid-cols-2 gap-2">
+                    <!-- Dinamik olarak dolacak -->
+                </div>
+            </div>
+        </div>
+
+        <footer class="py-12 text-center opacity-20 hover:opacity-100 transition-opacity">
+            <p class="text-[8px] font-black text-gray-400 uppercase tracking-[0.5em] cursor-pointer" onclick="resetSystem()">
+                SİSTEMİ SIFIRLA
+            </p>
+        </footer>
     </div>
-  </td>
-</tr>
-</tfoot>
-</table>
 
-<script>
-let genelToplam = 0;
+    <script>
+        let fires = JSON.parse(localStorage.getItem('fireRecords')) || [];
 
-function listele(filterBaslangic="", filterBitis=""){
-  const tbody=document.querySelector("#detayTablo tbody");
-  tbody.innerHTML="";
-  const fireDetay = JSON.parse(localStorage.getItem("fireDetay")||"[]");
+        const form = document.getElementById('fire-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const cancelBtn = document.getElementById('cancel-btn');
 
-  let grupToplam = {};
-  genelToplam = 0;
+        function init() {
+            render();
+        }
 
-  fireDetay.forEach((f,index)=>{
-    let gecmisVar = f.gecmis && f.gecmis.length>0 ? f.gecmis : [{miktar: f.miktar, birim: f.birim, tarihSaat: f.tarihSaat}];
+        function calculateTotal(amount, price, kdv, unit) {
+            const amt = parseFloat(amount) || 0;
+            const prc = parseFloat(price) || 0;
+            const rate = parseFloat(kdv);
+            const baseValue = unit === 'gram' ? (amt / 1000) * prc : amt * prc;
+            const divisor = 1 + (rate / 100);
+            return (baseValue / divisor).toFixed(2);
+        }
 
-    // Filtreleme
-    if(filterBaslangic || filterBitis){
-      const bas = filterBaslangic ? new Date(filterBaslangic + "T00:00:00") : null;
-      const bit = filterBitis ? new Date(filterBitis + "T23:59:59") : null;
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const editId = document.getElementById('edit-id').value;
+            const categorySelect = document.getElementById('category');
+            const lastCategory = categorySelect.value; // Kategori değerini sakla
 
-      gecmisVar = gecmisVar.filter(g=>{
-        const tarih = new Date(g.tarihSaat);
-        if(bas && tarih < bas) return false;
-        if(bit && tarih > bit) return false;
-        return true;
-      });
+            const formData = {
+                code: document.getElementById('code').value,
+                productName: document.getElementById('productName').value,
+                unitType: document.getElementById('unitType').value,
+                amount: document.getElementById('amount').value,
+                unitPrice: document.getElementById('unitPrice').value,
+                kdv: document.getElementById('kdv').value,
+                category: lastCategory
+            };
 
-      if(gecmisVar.length === 0) return; // filtrelenmiş geçmiş yoksa satırı atla
-    }
+            const totalValue = calculateTotal(formData.amount, formData.unitPrice, formData.kdv, formData.unitType);
 
-    // Filtrelenmiş tutarları hesapla
-    let toplamTutar = 0;
-    gecmisVar.forEach(g=>{
-      toplamTutar += parseFloat((f.fiyat * (g.birim==="adet"?g.miktar:g.miktar/1000) / (f.yuzde===1?1.01:f.yuzde===10?1.1:1.2)).toFixed(2));
-    });
+            if (editId) {
+                const index = fires.findIndex(f => f.id === editId);
+                if (index !== -1) {
+                    fires[index] = { ...fires[index], ...formData, total: totalValue, timestamp: Date.now() };
+                }
+                document.getElementById('edit-id').value = '';
+                submitBtn.innerText = 'LİSTEYE GÖNDER';
+                cancelBtn.classList.add('hidden');
+            } else {
+                const existing = fires.find(f => 
+                    f.status === 'unregistered' && 
+                    (f.code === formData.code || f.productName.toLowerCase() === formData.productName.toLowerCase())
+                );
 
-    if(!grupToplam[f.grup]) grupToplam[f.grup]=0;
-    grupToplam[f.grup]+=toplamTutar;
-    genelToplam+=toplamTutar;
+                if (existing) {
+                    existing.amount = (parseFloat(existing.amount) + parseFloat(formData.amount)).toString();
+                    existing.total = calculateTotal(existing.amount, formData.unitPrice, formData.kdv, formData.unitType);
+                    existing.timestamp = Date.now();
+                } else {
+                    fires.push({
+                        id: Date.now().toString(),
+                        ...formData,
+                        total: totalValue,
+                        date: new Date().toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' }),
+                        status: 'unregistered',
+                        timestamp: Date.now(),
+                        history: []
+                    });
+                }
+            }
 
-    // Ana satır
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td class="kod-ad">${f.kod}<br>${f.ad}</td>
-                    <td>${gecmisVar.reduce((sum,g)=>sum+g.miktar,0)}</td>
-                    <td style="display:none;">${f.birim}</td>
-                    <td>${f.fiyat}</td>
-                    <td>${f.yuzde}%</td>
-                    <td>${f.grup}</td>
-                    <td class="tutar ${toplamTutar>500?'tutar500':''}">${toplamTutar.toFixed(2)}</td>
-                    <td><button onclick="toggleGecmis(${index})">+</button></td>
-                    <td class="islem-btns">
-                      <button onclick="duzenle(${index})">Düzenle</button>
-                      <button onclick="sil(${index})">Sil</button>
-                    </td>`;
-    tbody.appendChild(tr);
+            saveAndRender();
+            
+            // Formu temizle ama kategoriyi geri yükle
+            form.reset();
+            categorySelect.value = lastCategory;
+        });
 
-    // geçmiş satırları
-    gecmisVar.forEach(g=>{
-      const tr2 = document.createElement("tr");
-      tr2.className="gecmis-row gecmis-"+index;
-      const miktarClass = g.birim==="adet"?"adet":"gram";
-      const tutarG = (f.fiyat * (g.birim==="adet"?g.miktar:g.miktar/1000) / (f.yuzde===1?1.01:f.yuzde===10?1.1:1.2)).toFixed(2);
-      tr2.innerHTML = `<td colspan="1"></td>
-                      <td class="${miktarClass}">${g.miktar}</td>
-                      <td style="display:none;">${g.birim}</td>
-                      <td>${f.fiyat}</td>
-                      <td>${f.yuzde}%</td>
-                      <td>${f.grup}</td>
-                      <td class="tutar ${tutarG>500?'tutar500':''}">${tutarG}</td>
-                      <td colspan="2">${g.tarihSaat}</td>`;
-      tbody.appendChild(tr2);
-    });
-  });
+        function registerAll() {
+            const unregistered = fires.filter(f => f.status === 'unregistered');
+            const registered = fires.filter(f => f.status === 'registered');
 
-  // Grup toplamları ve genel toplam
-  const grupDiv=document.getElementById("grupToplam");
-  grupDiv.innerHTML="";
-  for(let g in grupToplam){
-    const span = document.createElement("span");
-    span.style.fontWeight = "bold";
-    span.textContent = `${g}: ${grupToplam[g].toFixed(2)} TL`;
-    grupDiv.appendChild(span);
-  }
+            unregistered.forEach(item => {
+                const existingInArchive = registered.find(r => 
+                    (r.code === item.code || r.productName.toLowerCase() === item.productName.toLowerCase()) && r.category === item.category
+                );
 
-  document.getElementById("genelToplam").textContent = `Genel Toplam: ${genelToplam.toFixed(2)} TL`;
-}
+                if (existingInArchive) {
+                    existingInArchive.amount = (parseFloat(existingInArchive.amount) + parseFloat(item.amount)).toString();
+                    existingInArchive.total = (parseFloat(existingInArchive.total) + parseFloat(item.total)).toFixed(2);
+                    existingInArchive.history.push({
+                        date: item.date,
+                        amount: item.amount,
+                        unitType: item.unitType,
+                        total: item.total
+                    });
+                    existingInArchive.timestamp = Date.now();
+                    item.toBeDeleted = true;
+                } else {
+                    item.status = 'registered';
+                    item.history = [{
+                        date: item.date,
+                        amount: item.amount,
+                        unitType: item.unitType,
+                        total: item.total
+                    }];
+                    item.timestamp = Date.now();
+                }
+            });
 
-function hesaplaCiro(){
-  const ciro = parseFloat(document.getElementById("ciro").value);
-  if(!ciro || ciro===0){ alert("Ciroyu doğru giriniz."); return; }
-  const sonuc = (genelToplam / ciro * 100).toFixed(2);
-  document.getElementById("ciroSonuc").textContent = sonuc + " %";
-}
+            fires = fires.filter(f => !f.toBeDeleted);
+            saveAndRender();
+        }
 
-function duzenle(index){
-  let fireDetay = JSON.parse(localStorage.getItem("fireDetay")||"[]");
-  const f = fireDetay[index];
-  
-  if(!f.gecmis) f.gecmis=[];
-  f.gecmis.push({miktar:f.miktar, birim:f.birim, tarihSaat: new Date().toLocaleString()});
-  
-  const urunKod = prompt("Ürün Kodu:", f.kod);
-  const urunAd = prompt("Ürün Adı:", f.ad);
-  const miktar = parseFloat(prompt("Miktar:", f.miktar));
-  const birim = prompt("Birim (adet/gram):", f.birim);
-  const fiyat = parseFloat(prompt("Fiyat:", f.fiyat));
-  const yuzde = parseInt(prompt("Yüzde (1/10/20):", f.yuzde));
-  const grup = prompt("Grup:", f.grup);
+        function deleteRecord(id) {
+            if (confirm("Bu kaydı silmek istediğinize emin misiniz?")) {
+                fires = fires.filter(f => f.id !== id);
+                saveAndRender();
+            }
+        }
 
-  fireDetay[index]={kod:urunKod,ad:urunAd,miktar,birim,fiyat,yuzde,grup,gecmis:f.gecmis};
-  localStorage.setItem("fireDetay", JSON.stringify(fireDetay));
-  listele();
-}
+        function startEdit(id) {
+            const item = fires.find(f => f.id === id);
+            if (!item) return;
 
-function sil(index){
-  if(confirm("Bu ürünü ve geçmişi silmek istediğinize emin misiniz?")){
-    let fireDetay = JSON.parse(localStorage.getItem("fireDetay")||"[]");
-    fireDetay.splice(index,1);
-    localStorage.setItem("fireDetay", JSON.stringify(fireDetay));
-    listele();
-  }
-}
+            document.getElementById('edit-id').value = item.id;
+            document.getElementById('code').value = item.code;
+            document.getElementById('productName').value = item.productName;
+            document.getElementById('unitType').value = item.unitType;
+            document.getElementById('amount').value = item.amount;
+            document.getElementById('unitPrice').value = item.unitPrice;
+            document.getElementById('kdv').value = item.kdv;
+            document.getElementById('category').value = item.category;
 
-function toggleGecmis(index){
-  const rows=document.querySelectorAll(".gecmis-"+index);
-  rows.forEach(r=>r.style.display=(r.style.display==="table-row"?"none":"table-row"));
-}
+            submitBtn.innerText = 'DEĞİŞİKLİKLERİ KAYDET';
+            cancelBtn.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
 
-function filtrele(){
-  const bas = document.getElementById("baslangic").value;
-  const bit = document.getElementById("bitis").value;
-  listele(bas, bit);
-}
+        cancelBtn.onclick = () => {
+            const lastCat = document.getElementById('category').value;
+            form.reset();
+            document.getElementById('category').value = lastCat;
+            document.getElementById('edit-id').value = '';
+            submitBtn.innerText = 'LİSTEYE GÖNDER';
+            cancelBtn.classList.add('hidden');
+        };
 
-function temizleFiltre(){
-  document.getElementById("baslangic").value="";
-  document.getElementById("bitis").value="";
-  listele();
-}
+        function saveAndRender() {
+            localStorage.setItem('fireRecords', JSON.stringify(fires));
+            render();
+        }
 
-listele();
-</script>
+        function render() {
+            const unregisteredList = document.getElementById('unregistered-list');
+            const registeredList = document.getElementById('registered-list');
+            const categoryStats = document.getElementById('category-stats');
+            
+            const unregistered = fires.filter(f => f.status === 'unregistered').sort((a,b) => b.timestamp - a.timestamp);
+            const registered = fires.filter(f => f.status === 'registered').sort((a,b) => b.timestamp - a.timestamp);
+
+            unregisteredList.innerHTML = unregistered.length === 0 
+                ? `<div class="py-8 text-center text-gray-300 font-bold italic text-xs bg-white rounded-3xl border border-dashed border-gray-200">Henüz bekleyen kayıt yok.</div>`
+                : unregistered.map(item => `
+                    <div class="bg-white p-5 rounded-[2rem] border border-gray-100 flex justify-between items-center shadow-sm animate-in">
+                        <div class="flex flex-col">
+                            <span class="text-[8px] font-black text-orange-500 bg-orange-50 px-2 py-0.5 rounded w-fit mb-1 uppercase tracking-tighter">${item.category}</span>
+                            <h3 class="font-black text-gray-800 text-sm truncate max-w-[150px]">${item.productName}</h3>
+                            <p class="text-[10px] text-gray-400 font-bold">${item.amount} ${item.unitType === 'gram' ? 'Gr/Kg' : 'Adet'} • ${item.code}</p>
+                        </div>
+                        <div class="text-right flex flex-col items-end">
+                            <p class="font-black text-lg text-gray-900 leading-none mb-2 tabular-nums">${item.total}₺</p>
+                            <div class="flex gap-3">
+                                <button onclick="startEdit('${item.id}')" class="text-[9px] font-black text-blue-500 uppercase">✏️</button>
+                                <button onclick="deleteRecord('${item.id}')" class="text-[9px] font-black text-red-400 uppercase">✕</button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+            const uTotal = unregistered.reduce((acc, curr) => acc + parseFloat(curr.total), 0).toFixed(2);
+            document.getElementById('unregistered-total').innerText = uTotal + '₺';
+            document.getElementById('unregistered-total-footer').innerText = uTotal + '₺';
+            document.getElementById('register-all-container').style.display = unregistered.length > 0 ? 'block' : 'none';
+
+            document.getElementById('archive-section').style.display = registered.length > 0 ? 'block' : 'none';
+            registeredList.innerHTML = registered.map(item => `
+                <div class="flex flex-col animate-in">
+                    <div onclick="toggleAccordion('${item.id}')" class="bg-white p-5 rounded-2xl flex justify-between items-center border border-gray-100 shadow-sm cursor-pointer mb-1">
+                        <div class="text-xs flex flex-col">
+                            <span class="text-[8px] font-black text-gray-300 uppercase mb-1">${item.code} • ${item.category}</span>
+                            <span class="font-black text-gray-700 text-sm uppercase">${item.productName}</span>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="text-right">
+                                <span class="font-black text-gray-900 text-sm">${item.total}₺</span>
+                                <p class="text-[9px] text-gray-400 font-bold uppercase">${item.amount} ${item.unitType === 'gram' ? 'Gr/Kg' : 'Adet'}</p>
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                <button onclick="event.stopPropagation(); startEdit('${item.id}')" class="text-gray-300 hover:text-blue-500">✏️</button>
+                                <button onclick="event.stopPropagation(); deleteRecord('${item.id}')" class="text-gray-300 hover:text-red-500">✕</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="acc-${item.id}" class="hidden mx-4 bg-gray-50 rounded-b-2xl p-4 border-x border-b border-gray-100 space-y-2 mb-2">
+                        ${item.history.map(h => `
+                            <div class="flex justify-between items-center text-[10px] bg-white p-2 rounded-xl border border-gray-100">
+                                <span class="font-black text-gray-400">${h.date}</span>
+                                <span class="text-[9px] text-gray-500 font-bold">${h.amount} ${h.unitType === 'gram' ? 'Gr/Kg' : 'Adet'}</span>
+                                <span class="font-black text-blue-600">${h.total}₺</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+
+            const catTotals = {};
+            registered.forEach(item => {
+                catTotals[item.category] = (catTotals[item.category] || 0) + parseFloat(item.total);
+            });
+            categoryStats.innerHTML = Object.entries(catTotals)
+                .sort((a,b) => b[1] - a[1])
+                .map(([cat, val]) => `
+                    <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                        <p class="text-[8px] font-black text-gray-400 uppercase truncate">${cat}</p>
+                        <p class="text-xs font-black text-slate-800">${val.toFixed(2)}₺</p>
+                    </div>
+                `).join('');
+            
+            const rTotal = registered.reduce((acc, curr) => acc + parseFloat(curr.total), 0).toFixed(2);
+            document.getElementById('archive-total').innerText = rTotal + '₺';
+        }
+
+        function toggleAccordion(id) {
+            const el = document.getElementById(`acc-${id}`);
+            el.classList.toggle('hidden');
+        }
+
+        function resetSystem() {
+            if (prompt("Tüm verileri silmek için '2407' yazın:") === "2407") {
+                fires = [];
+                saveAndRender();
+                location.reload();
+            }
+        }
+
+        init();
+    </script>
 </body>
 </html>
+
