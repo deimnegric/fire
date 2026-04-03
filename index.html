@@ -111,10 +111,11 @@
     </div>
 
     <script>
+        // Verileri Yükle
         let fires = JSON.parse(localStorage.getItem('fireRecords')) || [];
         let filterMode = 'all';
 
-        // Uygulama başlatıldığında render et ve autocomplete'i kur
+        // Başlangıç Ayarları
         window.onload = () => {
             render();
             setupAutocomplete();
@@ -133,36 +134,7 @@
             return (baseValue / (1 + rate / 100)).toFixed(2);
         }
 
-        function setupAutocomplete() {
-            const input = document.getElementById('productName');
-            const list = document.getElementById('autocomplete-list');
-            input.addEventListener('input', function() {
-                const val = this.value.toLowerCase();
-                list.innerHTML = '';
-                if (!val) { list.classList.add('hidden'); return; }
-                const unique = Array.from(new Set(fires.map(f => f.productName))).map(n => fires.find(f => f.productName === n));
-                const matches = unique.filter(f => f.productName.toLowerCase().includes(val)).slice(0, 5);
-                if (matches.length > 0) {
-                    matches.forEach(m => {
-                        const div = document.createElement('div');
-                        div.className = 'autocomplete-item';
-                        div.innerHTML = `<span>${m.productName}</span> <span class="text-gray-300 float-right text-[10px]">${m.code}</span>`;
-                        div.onclick = () => {
-                            input.value = m.productName;
-                            document.getElementById('code').value = m.code;
-                            document.getElementById('unitPrice').value = m.unitPrice;
-                            document.getElementById('kdv').value = m.kdv;
-                            document.getElementById('category').value = m.category;
-                            document.getElementById('unitType').value = m.unitType;
-                            list.classList.add('hidden');
-                        };
-                        list.appendChild(div);
-                    });
-                    list.classList.remove('hidden');
-                } else list.classList.add('hidden');
-            });
-        }
-
+        // Form İşlemi
         document.getElementById('fire-form').addEventListener('submit', function(e) {
             e.preventDefault();
             const editId = document.getElementById('edit-id').value;
@@ -186,33 +158,31 @@
             if (editId) {
                 const idx = fires.findIndex(f => f.id === editId);
                 if (idx !== -1) {
-                    itemData.status = fires[idx].status; // Eski durumunu koru
-                    itemData.fullDate = fires[idx].fullDate; // Eski tarihini koru
+                    itemData.status = fires[idx].status; 
                     fires[idx] = itemData;
                 }
                 cancelEdit();
             } else {
-                fires.unshift(itemData); // Yeni eklenen en üste gelsin
+                fires.unshift(itemData); // Yeni kayıtları başa ekle
             }
             
             saveAndRender();
             this.reset();
-            document.getElementById('edit-id').value = '';
         });
 
         function render() {
             const unregistered = fires.filter(f => f.status === 'unregistered');
             const registered = fires.filter(f => f.status === 'registered');
 
-            // 1. BEKLEYEN LİSTESİ
+            // 1. BEKLEYENLERİ ÇİZ
             const unregList = document.getElementById('unregistered-list');
             unregList.innerHTML = unregistered.length === 0 ? 
-                `<div class="p-8 text-center border-2 border-dashed border-gray-200 rounded-3xl text-gray-300 font-bold text-[10px] uppercase">Yeni kayıt bekleniyor...</div>` :
+                `<div class="p-8 text-center border-2 border-dashed border-gray-200 rounded-3xl text-gray-300 font-bold text-[10px] uppercase">Bekleyen kayıt yok...</div>` :
                 unregistered.map(item => `
                     <div class="bg-white p-4 rounded-3xl border border-gray-100 flex justify-between items-center shadow-sm animate-in">
                         <div>
                             <span class="text-[7px] font-black text-orange-500 bg-orange-50 px-2 py-0.5 rounded uppercase">${item.category}</span>
-                            <h3 class="font-black text-gray-800 text-xs mt-1 uppercase">${item.productName} <span class="text-blue-500 opacity-40 ml-1">${item.code}</span></h3>
+                            <h3 class="font-black text-gray-800 text-xs mt-1 uppercase">${item.productName}</h3>
                             <p class="text-[9px] text-gray-400 font-bold">${item.amount} ${item.unitType === 'gram' ? 'KG/GR' : 'ADET'} • ${item.time}</p>
                         </div>
                         <div class="text-right flex items-center gap-3">
@@ -229,14 +199,7 @@
             document.getElementById('register-all-btn').classList.toggle('hidden', unregistered.length === 0);
             document.getElementById('pending-analysis').classList.toggle('hidden', unregistered.length === 0);
 
-            // Bekleyen analizi
-            const pStats = {};
-            unregistered.forEach(i => pStats[i.category] = (pStats[i.category] || 0) + parseFloat(i.total));
-            document.getElementById('unregistered-category-stats').innerHTML = Object.entries(pStats).map(([cat, val]) => `
-                <div class="bg-white p-3 rounded-2xl flex justify-between items-center border border-orange-100"><span class="text-[8px] font-black text-orange-900 uppercase">${cat}</span><span class="text-xs font-black text-orange-600">${val.toFixed(2)}₺</span></div>
-            `).join('');
-
-            // 2. ARŞİV FİLTRELEME
+            // 2. ARŞİVİ FİLTRELE VE ÇİZ
             const today = new Date().toISOString().split('T')[0];
             const start = document.getElementById('start-date').value;
             const end = document.getElementById('end-date').value;
@@ -249,11 +212,11 @@
 
             const regList = document.getElementById('registered-list');
             regList.innerHTML = filtered.length === 0 ? 
-                `<div class="p-6 text-center text-gray-400 font-bold text-xs italic">Kayıt bulunamadı.</div>` :
+                `<div class="p-6 text-center text-gray-400 font-bold text-xs">Arşiv boş veya sonuç yok.</div>` :
                 filtered.map(item => `
                     <div class="bg-white p-3 rounded-2xl border border-gray-100 flex justify-between items-center opacity-80">
                         <div class="flex flex-col">
-                            <span class="text-[7px] font-black text-gray-400 uppercase">${item.category} / ${item.code} / ${item.fullDate}</span>
+                            <span class="text-[7px] font-black text-gray-400 uppercase">${item.category} / ${item.fullDate}</span>
                             <h4 class="font-bold text-gray-700 text-[11px]">${item.productName}</h4>
                         </div>
                         <p class="font-black text-xs text-slate-700">${item.total}₺</p>
@@ -263,7 +226,7 @@
             const total = filtered.reduce((a, b) => a + parseFloat(b.total), 0);
             document.getElementById('archive-total').innerText = total.toFixed(2) + '₺';
 
-            // Grafik
+            // Grafik Analizi
             const catStats = {};
             filtered.forEach(i => catStats[i.category] = (catStats[i.category] || 0) + parseFloat(i.total));
             document.getElementById('chart-container').innerHTML = Object.entries(catStats).map(([cat, val]) => {
@@ -279,6 +242,7 @@
             }).join('');
         }
 
+        // Yardımcı Fonksiyonlar
         function registerAll() {
             fires = fires.map(f => f.status === 'unregistered' ? {...f, status: 'registered'} : f);
             saveAndRender();
@@ -323,4 +287,45 @@
 
         function handleDateRangeChange() {
             filterMode = 'range';
-        
+            render();
+        }
+
+        function resetSystem() {
+            if(prompt("Şifre:") === "2407") {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        function setupAutocomplete() {
+            const input = document.getElementById('productName');
+            const list = document.getElementById('autocomplete-list');
+            input.addEventListener('input', function() {
+                const val = this.value.toLowerCase();
+                list.innerHTML = '';
+                if (!val) { list.classList.add('hidden'); return; }
+                const unique = Array.from(new Set(fires.map(f => f.productName))).map(n => fires.find(f => f.productName === n));
+                const matches = unique.filter(f => f.productName.toLowerCase().includes(val)).slice(0, 5);
+                if (matches.length > 0) {
+                    matches.forEach(m => {
+                        const div = document.createElement('div');
+                        div.className = 'autocomplete-item';
+                        div.innerHTML = `<span>${m.productName}</span>`;
+                        div.onclick = () => {
+                            input.value = m.productName;
+                            document.getElementById('code').value = m.code;
+                            document.getElementById('unitPrice').value = m.unitPrice;
+                            document.getElementById('kdv').value = m.kdv;
+                            document.getElementById('category').value = m.category;
+                            document.getElementById('unitType').value = m.unitType;
+                            list.classList.add('hidden');
+                        };
+                        list.appendChild(div);
+                    });
+                    list.classList.remove('hidden');
+                } else list.classList.add('hidden');
+            });
+        }
+    </script>
+</body>
+</html>
