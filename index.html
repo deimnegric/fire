@@ -332,4 +332,18 @@
                             input.value = m.productName;
                             document.getElementById('code').value = m.code;
                             document.getElementById('unitPrice').value = m.unitPrice;
+                            document.getElementById('kdv').value = m.kdv;
+                            document.getElementById('category').value = m.category;
+                            document.getElementById('unitType').value = m.unitType;
+                            list.classList.add('hidden');
+                        };
+                        list.appendChild(div);
+                    });
+                    list.classList.remove('hidden');
+                } else list.classList.add('hidden');
+            });
+        }
+    </script>
+</body>
+</html>
     
