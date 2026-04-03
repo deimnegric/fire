@@ -63,7 +63,7 @@
                     <option value="Meyve Sebze">Meyve Sebze</option>
                 </select>
                 <button type="submit" id="submit-btn" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-black tracking-widest active:scale-95 shadow-lg uppercase text-sm">LİSTEYE EKLE</button>
-                <button type="button" id="cancel-edit-btn" class="hidden w-full py-2 text-xs font-bold text-red-500 uppercase">VAZGEÇ</button>
+                <button type="button" id="cancel-edit-btn" onclick="cancelEdit()" class="hidden w-full py-2 text-xs font-bold text-red-500 uppercase">VAZGEÇ</button>
             </form>
         </div>
 
@@ -114,6 +114,12 @@
         let fires = JSON.parse(localStorage.getItem('fireRecords')) || [];
         let filterMode = 'all';
 
+        // Uygulama başlatıldığında render et ve autocomplete'i kur
+        window.onload = () => {
+            render();
+            setupAutocomplete();
+        };
+
         function saveAndRender() {
             localStorage.setItem('fireRecords', JSON.stringify(fires));
             render();
@@ -127,7 +133,6 @@
             return (baseValue / (1 + rate / 100)).toFixed(2);
         }
 
-        // AUTOCOMPLETE
         function setupAutocomplete() {
             const input = document.getElementById('productName');
             const list = document.getElementById('autocomplete-list');
@@ -158,7 +163,6 @@
             });
         }
 
-        // FORM SUBMIT
         document.getElementById('fire-form').addEventListener('submit', function(e) {
             e.preventDefault();
             const editId = document.getElementById('edit-id').value;
@@ -182,30 +186,25 @@
             if (editId) {
                 const idx = fires.findIndex(f => f.id === editId);
                 if (idx !== -1) {
-                    const oldStatus = fires[idx].status;
-                    fires[idx] = {...itemData, status: oldStatus};
+                    itemData.status = fires[idx].status; // Eski durumunu koru
+                    itemData.fullDate = fires[idx].fullDate; // Eski tarihini koru
+                    fires[idx] = itemData;
                 }
-                document.getElementById('edit-id').value = '';
-                document.getElementById('submit-btn').innerText = 'LİSTEYE EKLE';
-                document.getElementById('cancel-edit-btn').classList.add('hidden');
+                cancelEdit();
             } else {
-                fires.push(itemData);
+                fires.unshift(itemData); // Yeni eklenen en üste gelsin
             }
             
             saveAndRender();
-            // Formu temizle ama özellikleri koru
-            document.getElementById('productName').value = '';
-            document.getElementById('code').value = '';
-            document.getElementById('amount').value = '';
-            document.getElementById('unitPrice').value = '';
+            this.reset();
+            document.getElementById('edit-id').value = '';
         });
 
-        // RENDER
         function render() {
             const unregistered = fires.filter(f => f.status === 'unregistered');
             const registered = fires.filter(f => f.status === 'registered');
 
-            // 1. Bekleyen Listesi
+            // 1. BEKLEYEN LİSTESİ
             const unregList = document.getElementById('unregistered-list');
             unregList.innerHTML = unregistered.length === 0 ? 
                 `<div class="p-8 text-center border-2 border-dashed border-gray-200 rounded-3xl text-gray-300 font-bold text-[10px] uppercase">Yeni kayıt bekleniyor...</div>` :
@@ -230,13 +229,14 @@
             document.getElementById('register-all-btn').classList.toggle('hidden', unregistered.length === 0);
             document.getElementById('pending-analysis').classList.toggle('hidden', unregistered.length === 0);
 
+            // Bekleyen analizi
             const pStats = {};
             unregistered.forEach(i => pStats[i.category] = (pStats[i.category] || 0) + parseFloat(i.total));
             document.getElementById('unregistered-category-stats').innerHTML = Object.entries(pStats).map(([cat, val]) => `
                 <div class="bg-white p-3 rounded-2xl flex justify-between items-center border border-orange-100"><span class="text-[8px] font-black text-orange-900 uppercase">${cat}</span><span class="text-xs font-black text-orange-600">${val.toFixed(2)}₺</span></div>
             `).join('');
 
-            // 2. Arşiv Listesi Filtreleme
+            // 2. ARŞİV FİLTRELEME
             const today = new Date().toISOString().split('T')[0];
             const start = document.getElementById('start-date').value;
             const end = document.getElementById('end-date').value;
@@ -253,7 +253,7 @@
                 filtered.map(item => `
                     <div class="bg-white p-3 rounded-2xl border border-gray-100 flex justify-between items-center opacity-80">
                         <div class="flex flex-col">
-                            <span class="text-[7px] font-black text-gray-400 uppercase">${item.category} / ${item.code}</span>
+                            <span class="text-[7px] font-black text-gray-400 uppercase">${item.category} / ${item.code} / ${item.fullDate}</span>
                             <h4 class="font-bold text-gray-700 text-[11px]">${item.productName}</h4>
                         </div>
                         <p class="font-black text-xs text-slate-700">${item.total}₺</p>
@@ -279,7 +279,6 @@
             }).join('');
         }
 
-        // DİĞER FONKSİYONLAR
         function registerAll() {
             fires = fires.map(f => f.status === 'unregistered' ? {...f, status: 'registered'} : f);
             saveAndRender();
@@ -308,6 +307,13 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+        function cancelEdit() {
+            document.getElementById('edit-id').value = '';
+            document.getElementById('fire-form').reset();
+            document.getElementById('submit-btn').innerText = 'LİSTEYE EKLE';
+            document.getElementById('cancel-edit-btn').classList.add('hidden');
+        }
+
         function setFilter(mode) {
             filterMode = mode;
             document.getElementById('filter-all').className = mode === 'all' ? 'px-4 py-1.5 rounded-lg bg-white shadow-sm' : 'px-4 py-1.5 rounded-lg text-gray-400';
@@ -317,11 +323,5 @@
 
         function handleDateRangeChange() {
             filterMode = 'range';
-            render();
-        }
-
-        function resetSystem() {
-            if(prompt("Şifre:") === "2407") { localStorage.clear(); location.reload(); }
-        }
-
-        win
+        
+        
