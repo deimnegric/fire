@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Atatürk Cd. Fire Takip V6.2</title>
+    <title>Atatürk Cd. Fire Takip V6.3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
@@ -12,7 +12,6 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .autocomplete-items { position: absolute; border: 1px solid #e5e7eb; z-index: 99; top: 100%; left: 0; right: 0; background: white; border-radius: 1rem; max-height: 180px; overflow-y: auto; box-shadow: 0 15px 25px -5px rgba(0,0,0,0.1); }
         .autocomplete-item { padding: 12px; cursor: pointer; font-size: 13px; font-weight: 700; border-bottom: 1px solid #f3f4f6; }
-        .bar-transition { transition: width 0.8s ease-in-out; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
@@ -22,7 +21,7 @@
         <div class="flex justify-between items-center px-2">
             <div>
                 <h1 class="text-3xl font-black tracking-tighter text-gray-900 uppercase">ATATÜRK CD.</h1>
-                <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Gelişmiş Filtreleme v6.2</p>
+                <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Gelişmiş Filtreleme v6.3</p>
             </div>
             <div class="text-right">
                 <span id="unregistered-total" class="text-2xl font-black text-orange-600">0.00₺</span>
@@ -30,10 +29,9 @@
             </div>
         </div>
 
-        <div id="form-top" class="bg-white rounded-[2.5rem] shadow-xl p-6 relative border border-gray-100">
+        <div id="form-top" class="bg-white rounded-[2.5rem] shadow-xl p-6 border border-gray-100">
             <form id="fire-form" class="space-y-3" autocomplete="off">
                 <input type="hidden" id="edit-id">
-                
                 <div class="grid grid-cols-2 gap-2 relative">
                     <div class="relative">
                         <input type="text" id="productName" placeholder="Ürün Adı" class="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold text-sm border-2 border-transparent focus:border-blue-500" required>
@@ -41,25 +39,22 @@
                     </div>
                     <input type="text" id="code" placeholder="Kod" class="bg-gray-50 p-4 rounded-2xl outline-none font-bold text-sm border-2 border-transparent focus:border-blue-500" required>
                 </div>
-
                 <div class="grid grid-cols-3 gap-2">
-                    <select id="unitType" class="bg-gray-50 p-4 rounded-2xl font-bold text-sm outline-none">
+                    <select id="unitType" class="bg-gray-50 p-4 rounded-2xl font-bold text-sm outline-none border-2 border-transparent focus:border-blue-500">
                         <option value="gram">KG / GR</option>
                         <option value="Adet">ADET</option>
                     </select>
-                    <input type="number" id="amount" step="0.001" inputmode="decimal" placeholder="Miktar" class="col-span-2 bg-gray-50 p-4 rounded-2xl outline-none font-bold text-sm" required>
+                    <input type="number" id="amount" step="0.001" inputmode="decimal" placeholder="Miktar" class="col-span-2 bg-gray-50 p-4 rounded-2xl outline-none font-bold text-sm border-2 border-transparent focus:border-blue-500" required>
                 </div>
-
                 <div class="grid grid-cols-3 gap-2">
-                    <input type="number" step="0.01" id="unitPrice" placeholder="Fiyat" class="col-span-2 bg-gray-50 p-4 rounded-2xl outline-none font-black text-blue-600" required>
-                    <select id="kdv" class="bg-gray-50 p-4 rounded-2xl font-black text-orange-600 outline-none">
+                    <input type="number" step="0.01" id="unitPrice" placeholder="Fiyat" class="col-span-2 bg-gray-50 p-4 rounded-2xl outline-none font-black text-blue-600 border-2 border-transparent focus:border-blue-500" required>
+                    <select id="kdv" class="bg-gray-50 p-4 rounded-2xl font-black text-orange-600 outline-none border-2 border-transparent focus:border-blue-500">
                         <option value="1">%1</option>
                         <option value="10">%10</option>
                         <option value="20">%20</option>
                     </select>
                 </div>
-
-                <select id="category" class="w-full bg-gray-50 p-4 rounded-2xl font-bold text-sm outline-none">
+                <select id="category" class="w-full bg-gray-50 p-4 rounded-2xl font-bold text-sm outline-none border-2 border-transparent focus:border-blue-500">
                     <option value="Kırmızı Et">Kırmızı Et</option>
                     <option value="Tavuk">Tavuk</option>
                     <option value="SKT">SKT Ürün</option>
@@ -67,51 +62,35 @@
                     <option value="Spot">Spot</option>
                     <option value="Meyve Sebze">Meyve Sebze</option>
                 </select>
-
-                <button type="submit" id="submit-btn" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-black tracking-widest active:scale-95 shadow-lg uppercase text-sm">
-                    LİSTEYE EKLE
-                </button>
-                <button type="button" id="cancel-edit-btn" class="hidden w-full py-2 text-xs font-bold text-red-500 uppercase">VAZGEÇ / İPTAL</button>
+                <button type="submit" id="submit-btn" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-black tracking-widest active:scale-95 shadow-lg uppercase text-sm">LİSTEYE EKLE</button>
+                <button type="button" id="cancel-edit-btn" class="hidden w-full py-2 text-xs font-bold text-red-500 uppercase">VAZGEÇ</button>
             </form>
         </div>
 
         <div id="pending-container" class="space-y-4">
             <h2 class="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2 flex items-center gap-2">
-                <span class="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></span>
-                Onay Bekleyenler
+                <span class="w-2 h-2 bg-orange-500 rounded-full"></span> Onay Bekleyenler
             </h2>
-            <div id="unregistered-list" class="space-y-3 min-h-[10px]"></div>
-            
+            <div id="unregistered-list" class="space-y-3"></div>
             <div id="pending-analysis" class="hidden bg-orange-50 rounded-[2rem] p-5 border border-orange-100 space-y-3">
                 <div id="unregistered-category-stats" class="grid grid-cols-2 gap-2"></div>
             </div>
-
-            <button id="register-all-btn" onclick="registerAll()" class="hidden w-full py-4 bg-orange-500 text-white rounded-2xl font-black text-sm tracking-widest uppercase shadow-xl active:scale-95">
-                HEPSİNİ ARŞİVE AKTAR VE ONAYLA
-            </button>
+            <button id="register-all-btn" onclick="registerAll()" class="hidden w-full py-4 bg-orange-500 text-white rounded-2xl font-black text-sm uppercase shadow-xl">HEPSİNİ ONAYLA VE ARŞİVE AT</button>
         </div>
 
         <div id="archive-section" class="pt-8 space-y-4 border-t border-gray-200">
             <div class="bg-white rounded-[2rem] p-5 shadow-sm space-y-4 border border-gray-100">
                 <div class="flex justify-between items-center">
-                    <h2 class="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Filtreleme Paneli</h2>
+                    <h2 class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Arşiv & Filtre</h2>
                     <div class="flex bg-gray-100 p-1 rounded-xl text-[9px] font-black">
                         <button onclick="setFilter('all')" id="filter-all" class="px-4 py-1.5 rounded-lg bg-white shadow-sm transition-all">HEPSİ</button>
                         <button onclick="setFilter('today')" id="filter-today" class="px-4 py-1.5 rounded-lg text-gray-400 transition-all">BUGÜN</button>
                     </div>
                 </div>
-                
-                <input type="text" id="archiveSearch" oninput="render()" placeholder="Arşivde ürün veya kod ara..." class="w-full bg-gray-50 p-3 rounded-xl text-[11px] font-bold outline-none border border-gray-100 focus:border-blue-300">
-
+                <input type="text" id="archiveSearch" oninput="render()" placeholder="Ürün veya kod ara..." class="w-full bg-gray-50 p-3 rounded-xl text-[11px] font-bold outline-none border border-gray-100 focus:border-blue-300">
                 <div class="grid grid-cols-2 gap-2">
-                    <div class="space-y-1">
-                        <label class="text-[8px] font-black text-gray-300 uppercase ml-2">Başlangıç</label>
-                        <input type="date" id="start-date" onchange="handleDateRangeChange()" class="w-full bg-gray-50 p-3 rounded-xl text-[10px] font-bold outline-none border border-transparent focus:border-blue-300">
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-[8px] font-black text-gray-300 uppercase ml-2">Bitiş</label>
-                        <input type="date" id="end-date" onchange="handleDateRangeChange()" class="w-full bg-gray-50 p-3 rounded-xl text-[10px] font-bold outline-none border border-transparent focus:border-blue-300">
-                    </div>
+                    <input type="date" id="start-date" onchange="handleDateRangeChange()" class="w-full bg-gray-50 p-3 rounded-xl text-[10px] font-bold outline-none border border-gray-100">
+                    <input type="date" id="end-date" onchange="handleDateRangeChange()" class="w-full bg-gray-50 p-3 rounded-xl text-[10px] font-bold outline-none border border-gray-100">
                 </div>
             </div>
             
@@ -119,7 +98,7 @@
 
             <div class="bg-slate-900 rounded-[2.5rem] p-7 text-white space-y-6 shadow-2xl">
                 <div>
-                    <p id="total-label" class="text-[9px] font-black text-slate-400 uppercase tracking-widest">ARŞİV TOPLAMI</p>
+                    <p id="total-label" class="text-[9px] font-black text-slate-400 uppercase tracking-widest">TOPLAM TUTAR</p>
                     <h3 id="archive-total" class="text-3xl font-black tabular-nums">0.00₺</h3>
                 </div>
                 <div id="chart-container" class="space-y-4"></div>
@@ -133,11 +112,11 @@
 
     <script>
         let fires = JSON.parse(localStorage.getItem('fireRecords')) || [];
-        let filterMode = 'all'; 
+        let filterMode = 'all';
 
-        function init() { 
-            setupAutocomplete(); 
-            render(); 
+        function saveAndRender() {
+            localStorage.setItem('fireRecords', JSON.stringify(fires));
+            render();
         }
 
         function calculateTotal(amount, price, kdv, unit) {
@@ -148,6 +127,7 @@
             return (baseValue / (1 + rate / 100)).toFixed(2);
         }
 
+        // AUTOCOMPLETE
         function setupAutocomplete() {
             const input = document.getElementById('productName');
             const list = document.getElementById('autocomplete-list');
@@ -155,13 +135,13 @@
                 const val = this.value.toLowerCase();
                 list.innerHTML = '';
                 if (!val) { list.classList.add('hidden'); return; }
-                const uniqueItems = Array.from(new Set(fires.map(f => f.productName))).map(name => fires.find(f => f.productName === name));
-                const matches = uniqueItems.filter(f => f.productName.toLowerCase().includes(val)).slice(0, 5);
+                const unique = Array.from(new Set(fires.map(f => f.productName))).map(n => fires.find(f => f.productName === n));
+                const matches = unique.filter(f => f.productName.toLowerCase().includes(val)).slice(0, 5);
                 if (matches.length > 0) {
                     matches.forEach(m => {
                         const div = document.createElement('div');
                         div.className = 'autocomplete-item';
-                        div.innerHTML = `<span>${m.productName}</span> <span class="text-[10px] text-gray-300 float-right uppercase font-black">${m.code}</span>`;
+                        div.innerHTML = `<span>${m.productName}</span> <span class="text-gray-300 float-right text-[10px]">${m.code}</span>`;
                         div.onclick = () => {
                             input.value = m.productName;
                             document.getElementById('code').value = m.code;
@@ -178,13 +158,14 @@
             });
         }
 
+        // FORM SUBMIT
         document.getElementById('fire-form').addEventListener('submit', function(e) {
             e.preventDefault();
             const editId = document.getElementById('edit-id').value;
             const now = new Date();
-            const todayISO = now.toISOString().split('T')[0];
             
             const itemData = {
+                id: editId || Date.now().toString(),
                 code: document.getElementById('code').value.trim().toUpperCase(),
                 productName: document.getElementById('productName').value.trim(),
                 unitType: document.getElementById('unitType').value,
@@ -192,29 +173,124 @@
                 unitPrice: document.getElementById('unitPrice').value,
                 kdv: document.getElementById('kdv').value,
                 category: document.getElementById('category').value,
-                fullDate: todayISO, 
-                time: now.toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'})
+                fullDate: now.toISOString().split('T')[0],
+                time: now.toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}),
+                status: 'unregistered'
             };
             itemData.total = calculateTotal(itemData.amount, itemData.unitPrice, itemData.kdv, itemData.unitType);
 
             if (editId) {
                 const idx = fires.findIndex(f => f.id === editId);
-                if (idx !== -1) fires[idx] = { ...fires[idx], ...itemData };
+                if (idx !== -1) {
+                    const oldStatus = fires[idx].status;
+                    fires[idx] = {...itemData, status: oldStatus};
+                }
                 document.getElementById('edit-id').value = '';
                 document.getElementById('submit-btn').innerText = 'LİSTEYE EKLE';
                 document.getElementById('cancel-edit-btn').classList.add('hidden');
             } else {
-                fires.push({ id: Date.now().toString(), ...itemData, status: 'unregistered', history: [] });
+                fires.push(itemData);
             }
             
             saveAndRender();
-            
-            // FORM TEMİZLİĞİ (Özellikleri Koru)
+            // Formu temizle ama özellikleri koru
             document.getElementById('productName').value = '';
             document.getElementById('code').value = '';
             document.getElementById('amount').value = '';
             document.getElementById('unitPrice').value = '';
         });
+
+        // RENDER
+        function render() {
+            const unregistered = fires.filter(f => f.status === 'unregistered');
+            const registered = fires.filter(f => f.status === 'registered');
+
+            // 1. Bekleyen Listesi
+            const unregList = document.getElementById('unregistered-list');
+            unregList.innerHTML = unregistered.length === 0 ? 
+                `<div class="p-8 text-center border-2 border-dashed border-gray-200 rounded-3xl text-gray-300 font-bold text-[10px] uppercase">Yeni kayıt bekleniyor...</div>` :
+                unregistered.map(item => `
+                    <div class="bg-white p-4 rounded-3xl border border-gray-100 flex justify-between items-center shadow-sm animate-in">
+                        <div>
+                            <span class="text-[7px] font-black text-orange-500 bg-orange-50 px-2 py-0.5 rounded uppercase">${item.category}</span>
+                            <h3 class="font-black text-gray-800 text-xs mt-1 uppercase">${item.productName} <span class="text-blue-500 opacity-40 ml-1">${item.code}</span></h3>
+                            <p class="text-[9px] text-gray-400 font-bold">${item.amount} ${item.unitType === 'gram' ? 'KG/GR' : 'ADET'} • ${item.time}</p>
+                        </div>
+                        <div class="text-right flex items-center gap-3">
+                            <p class="font-black text-sm text-gray-900">${item.total}₺</p>
+                            <div class="flex flex-col gap-2 border-l border-gray-100 pl-3">
+                                <button onclick="editItem('${item.id}')" class="text-blue-500 text-xs">✏️</button>
+                                <button onclick="deleteRecord('${item.id}')" class="text-red-300 text-xs">✕</button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+            document.getElementById('unregistered-total').innerText = unregistered.reduce((a, b) => a + parseFloat(b.total), 0).toFixed(2) + '₺';
+            document.getElementById('register-all-btn').classList.toggle('hidden', unregistered.length === 0);
+            document.getElementById('pending-analysis').classList.toggle('hidden', unregistered.length === 0);
+
+            const pStats = {};
+            unregistered.forEach(i => pStats[i.category] = (pStats[i.category] || 0) + parseFloat(i.total));
+            document.getElementById('unregistered-category-stats').innerHTML = Object.entries(pStats).map(([cat, val]) => `
+                <div class="bg-white p-3 rounded-2xl flex justify-between items-center border border-orange-100"><span class="text-[8px] font-black text-orange-900 uppercase">${cat}</span><span class="text-xs font-black text-orange-600">${val.toFixed(2)}₺</span></div>
+            `).join('');
+
+            // 2. Arşiv Listesi Filtreleme
+            const today = new Date().toISOString().split('T')[0];
+            const start = document.getElementById('start-date').value;
+            const end = document.getElementById('end-date').value;
+            const search = document.getElementById('archiveSearch').value.toLowerCase();
+
+            let filtered = registered;
+            if (filterMode === 'today') filtered = registered.filter(f => f.fullDate === today);
+            if (filterMode === 'range' && start && end) filtered = registered.filter(f => f.fullDate >= start && f.fullDate <= end);
+            if (search) filtered = filtered.filter(f => f.productName.toLowerCase().includes(search) || f.code.toLowerCase().includes(search));
+
+            const regList = document.getElementById('registered-list');
+            regList.innerHTML = filtered.length === 0 ? 
+                `<div class="p-6 text-center text-gray-400 font-bold text-xs italic">Kayıt bulunamadı.</div>` :
+                filtered.map(item => `
+                    <div class="bg-white p-3 rounded-2xl border border-gray-100 flex justify-between items-center opacity-80">
+                        <div class="flex flex-col">
+                            <span class="text-[7px] font-black text-gray-400 uppercase">${item.category} / ${item.code}</span>
+                            <h4 class="font-bold text-gray-700 text-[11px]">${item.productName}</h4>
+                        </div>
+                        <p class="font-black text-xs text-slate-700">${item.total}₺</p>
+                    </div>
+                `).join('');
+
+            const total = filtered.reduce((a, b) => a + parseFloat(b.total), 0);
+            document.getElementById('archive-total').innerText = total.toFixed(2) + '₺';
+
+            // Grafik
+            const catStats = {};
+            filtered.forEach(i => catStats[i.category] = (catStats[i.category] || 0) + parseFloat(i.total));
+            document.getElementById('chart-container').innerHTML = Object.entries(catStats).map(([cat, val]) => {
+                const percent = total > 0 ? (val / total * 100).toFixed(0) : 0;
+                return `
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-[10px] font-bold uppercase text-slate-400"><span>${cat}</span><span>%${percent}</span></div>
+                        <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                            <div class="bg-blue-500 h-full" style="width: ${percent}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // DİĞER FONKSİYONLAR
+        function registerAll() {
+            fires = fires.map(f => f.status === 'unregistered' ? {...f, status: 'registered'} : f);
+            saveAndRender();
+        }
+
+        function deleteRecord(id) {
+            if(confirm('Silinsin mi?')) {
+                fires = fires.filter(f => f.id !== id);
+                saveAndRender();
+            }
+        }
 
         function editItem(id) {
             const item = fires.find(f => f.id === id);
@@ -227,108 +303,25 @@
             document.getElementById('unitType').value = item.unitType;
             document.getElementById('kdv').value = item.kdv;
             document.getElementById('category').value = item.category;
-            document.getElementById('submit-btn').innerText = 'KAYDI GÜNCELLE';
+            document.getElementById('submit-btn').innerText = 'GÜNCELLE';
             document.getElementById('cancel-edit-btn').classList.remove('hidden');
-            document.getElementById('form-top').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        document.getElementById('cancel-edit-btn').onclick = function() {
-            document.getElementById('fire-form').reset();
-            document.getElementById('edit-id').value = '';
-            this.classList.add('hidden');
-            document.getElementById('submit-btn').innerText = 'LİSTEYE EKLE';
-        };
-
-        function registerAll() {
-            const todayStr = new Date().toLocaleDateString('tr-TR');
-            fires.forEach(item => {
-                if(item.status === 'unregistered') {
-                    const existing = fires.find(r => r.status === 'registered' && r.code === item.code && r.category === item.category);
-                    const hEntry = { date: todayStr, time: item.time, amount: item.amount, total: item.total };
-                    if (existing) {
-                        existing.amount = (parseFloat(existing.amount) + parseFloat(item.amount)).toFixed(3);
-                        existing.total = (parseFloat(existing.total) + parseFloat(item.total)).toFixed(2);
-                        if(!existing.history) existing.history = [];
-                        existing.history.push(hEntry);
-                        item.status = 'to_delete';
-                    } else {
-                        item.status = 'registered';
-                        item.history = [hEntry];
-                    }
-                }
-            });
-            fires = fires.filter(f => f.status !== 'to_delete');
-            saveAndRender();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function setFilter(mode) {
             filterMode = mode;
-            document.getElementById('start-date').value = '';
-            document.getElementById('end-date').value = '';
-            document.getElementById('filter-all').className = mode === 'all' ? 'px-4 py-1.5 rounded-lg bg-white shadow-sm transition-all' : 'px-4 py-1.5 rounded-lg text-gray-400';
-            document.getElementById('filter-today').className = mode === 'today' ? 'px-4 py-1.5 rounded-lg bg-white shadow-sm transition-all' : 'px-4 py-1.5 rounded-lg text-gray-400';
+            document.getElementById('filter-all').className = mode === 'all' ? 'px-4 py-1.5 rounded-lg bg-white shadow-sm' : 'px-4 py-1.5 rounded-lg text-gray-400';
+            document.getElementById('filter-today').className = mode === 'today' ? 'px-4 py-1.5 rounded-lg bg-white shadow-sm' : 'px-4 py-1.5 rounded-lg text-gray-400';
             render();
         }
 
         function handleDateRangeChange() {
-            const s = document.getElementById('start-date').value;
-            const e = document.getElementById('end-date').value;
-            if (s && e) {
-                filterMode = 'range';
-                document.getElementById('filter-all').className = 'px-4 py-1.5 rounded-lg text-gray-400';
-                document.getElementById('filter-today').className = 'px-4 py-1.5 rounded-lg text-gray-400';
-                render();
-            }
-        }
-
-        function saveAndRender() {
-            localStorage.setItem('fireRecords', JSON.stringify(fires));
+            filterMode = 'range';
             render();
         }
 
-        function render() {
-            const unregistered = fires.filter(f => f.status === 'unregistered');
-            const registered = fires.filter(f => f.status === 'registered');
+        function resetSystem() {
+            if(prompt("Şifre:") === "2407") { localStorage.clear(); location.reload(); }
+        }
 
-            // 1. BEKLEYEN LİSTESİ
-            const listDiv = document.getElementById('unregistered-list');
-            listDiv.innerHTML = unregistered.length === 0 ? `<div class="p-8 text-center border-2 border-dashed border-gray-200 rounded-3xl text-gray-300 font-bold text-[10px] uppercase">Yeni kayıt bekleniyor...</div>` : 
-                unregistered.map(item => `
-                    <div class="bg-white p-4 rounded-3xl border border-gray-100 flex justify-between items-center shadow-sm animate-in">
-                        <div>
-                            <span class="text-[7px] font-black text-orange-500 bg-orange-50 px-2 py-0.5 rounded uppercase">${item.category}</span>
-                            <h3 class="font-black text-gray-800 text-xs mt-1 uppercase">${item.productName} <span class="text-blue-500 opacity-40 ml-1">${item.code}</span></h3>
-                            <p class="text-[9px] text-gray-400 font-bold tracking-tighter">${item.amount} ${item.unitType === 'gram' ? 'KG/GR' : 'ADET'} • ${item.time}</p>
-                        </div>
-                        <div class="text-right flex items-center gap-3">
-                            <p class="font-black text-sm text-gray-900">${item.total}₺</p>
-                            <div class="flex flex-col gap-2 border-l border-gray-100 pl-3">
-                                <button onclick="editItem('${item.id}')" class="text-blue-500 text-xs">✏️</button>
-                                <button onclick="deleteRecord('${item.id}')" class="text-red-300 text-xs">✕</button>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
-
-            document.getElementById('register-all-btn').classList.toggle('hidden', unregistered.length === 0);
-            document.getElementById('pending-analysis').classList.toggle('hidden', unregistered.length === 0);
-            document.getElementById('unregistered-total').innerText = unregistered.reduce((a,b) => a + parseFloat(b.total), 0).toFixed(2) + '₺';
-
-            const pStats = {};
-            unregistered.forEach(i => pStats[i.category] = (pStats[i.category] || 0) + parseFloat(i.total));
-            document.getElementById('unregistered-category-stats').innerHTML = Object.entries(pStats).map(([cat, val]) => `
-                <div class="bg-white p-3 rounded-2xl flex justify-between items-center border border-orange-100"><span class="text-[8px] font-black text-orange-900 uppercase">${cat}</span><span class="text-xs font-black text-orange-600">${val.toFixed(2)}₺</span></div>
-            `).join('');
-
-            // 2. ARŞİV LİSTESİ
-            let filteredReg = registered;
-            const todayISO = new Date().toISOString().split('T')[0];
-            const startDate = document.getElementById('start-date').value;
-            const endDate = document.getElementById('end-date').value;
-            const searchTerm = document.getElementById('archiveSearch').value.toLowerCase();
-
-            if (filterMode === 'today') {
-                filteredReg = registered.filter(f => f.fullDate === todayISO);
-            } else if (filterMode === 'range' && startDate && endDate) {
-                filteredReg = registered.filter(f => f.fullDate >= startDate && f.fullDate <= endDate);
-          
+        win
