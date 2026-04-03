@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Atatürk Cd. Fire Takip V6.1</title>
+    <title>Atatürk Cd. Fire Takip V6.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
@@ -22,7 +22,7 @@
         <div class="flex justify-between items-center px-2">
             <div>
                 <h1 class="text-3xl font-black tracking-tighter text-gray-900 uppercase">ATATÜRK CD.</h1>
-                <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Gelişmiş Filtreleme v6.1</p>
+                <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Gelişmiş Filtreleme v6.2</p>
             </div>
             <div class="text-right">
                 <span id="unregistered-total" class="text-2xl font-black text-orange-600">0.00₺</span>
@@ -91,7 +91,7 @@
             </button>
         </div>
 
-        <div id="archive-section" class="pt-8 space-y-4 hidden border-t border-gray-200">
+        <div id="archive-section" class="pt-8 space-y-4 border-t border-gray-200">
             <div class="bg-white rounded-[2rem] p-5 shadow-sm space-y-4 border border-gray-100">
                 <div class="flex justify-between items-center">
                     <h2 class="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Filtreleme Paneli</h2>
@@ -209,12 +209,11 @@
             
             saveAndRender();
             
-            // FORM SIFIRLAMA (Özellikleri korur)
+            // FORM TEMİZLİĞİ (Özellikleri Koru)
             document.getElementById('productName').value = '';
             document.getElementById('code').value = '';
             document.getElementById('amount').value = '';
             document.getElementById('unitPrice').value = '';
-            // Kategori, KDV ve Birim Tipi dokunulmaz.
         });
 
         function editItem(id) {
@@ -249,6 +248,7 @@
                     if (existing) {
                         existing.amount = (parseFloat(existing.amount) + parseFloat(item.amount)).toFixed(3);
                         existing.total = (parseFloat(existing.total) + parseFloat(item.total)).toFixed(2);
+                        if(!existing.history) existing.history = [];
                         existing.history.push(hEntry);
                         item.status = 'to_delete';
                     } else {
@@ -265,10 +265,8 @@
             filterMode = mode;
             document.getElementById('start-date').value = '';
             document.getElementById('end-date').value = '';
-            
             document.getElementById('filter-all').className = mode === 'all' ? 'px-4 py-1.5 rounded-lg bg-white shadow-sm transition-all' : 'px-4 py-1.5 rounded-lg text-gray-400';
             document.getElementById('filter-today').className = mode === 'today' ? 'px-4 py-1.5 rounded-lg bg-white shadow-sm transition-all' : 'px-4 py-1.5 rounded-lg text-gray-400';
-            
             render();
         }
 
@@ -299,7 +297,7 @@
                     <div class="bg-white p-4 rounded-3xl border border-gray-100 flex justify-between items-center shadow-sm animate-in">
                         <div>
                             <span class="text-[7px] font-black text-orange-500 bg-orange-50 px-2 py-0.5 rounded uppercase">${item.category}</span>
-                            <h3 class="font-black text-gray-800 text-xs mt-1 uppercase">${item.productName} <span class="text-blue-500 ml-1 opacity-50">${item.code}</span></h3>
+                            <h3 class="font-black text-gray-800 text-xs mt-1 uppercase">${item.productName} <span class="text-blue-500 opacity-40 ml-1">${item.code}</span></h3>
                             <p class="text-[9px] text-gray-400 font-bold tracking-tighter">${item.amount} ${item.unitType === 'gram' ? 'KG/GR' : 'ADET'} • ${item.time}</p>
                         </div>
                         <div class="text-right flex items-center gap-3">
@@ -322,7 +320,7 @@
                 <div class="bg-white p-3 rounded-2xl flex justify-between items-center border border-orange-100"><span class="text-[8px] font-black text-orange-900 uppercase">${cat}</span><span class="text-xs font-black text-orange-600">${val.toFixed(2)}₺</span></div>
             `).join('');
 
-            // 2. ARŞİV FİLTRELEME VE ARAMA
+            // 2. ARŞİV LİSTESİ
             let filteredReg = registered;
             const todayISO = new Date().toISOString().split('T')[0];
             const startDate = document.getElementById('start-date').value;
@@ -332,4 +330,5 @@
             if (filterMode === 'today') {
                 filteredReg = registered.filter(f => f.fullDate === todayISO);
             } else if (filterMode === 'range' && startDate && endDate) {
-                filteredReg = registered.filter(f => f.fullDate >= startDate && f.
+                filteredReg = registered.filter(f => f.fullDate >= startDate && f.fullDate <= endDate);
+          
