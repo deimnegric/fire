@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Atatürk Cd. Fire Takip V6</title>
+    <title>Atatürk Cd. Fire Takip V6.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
@@ -22,7 +22,7 @@
         <div class="flex justify-between items-center px-2">
             <div>
                 <h1 class="text-3xl font-black tracking-tighter text-gray-900 uppercase">ATATÜRK CD.</h1>
-                <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Gelişmiş Filtreleme v6</p>
+                <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Gelişmiş Filtreleme v6.1</p>
             </div>
             <div class="text-right">
                 <span id="unregistered-total" class="text-2xl font-black text-orange-600">0.00₺</span>
@@ -100,6 +100,9 @@
                         <button onclick="setFilter('today')" id="filter-today" class="px-4 py-1.5 rounded-lg text-gray-400 transition-all">BUGÜN</button>
                     </div>
                 </div>
+                
+                <input type="text" id="archiveSearch" oninput="render()" placeholder="Arşivde ürün veya kod ara..." class="w-full bg-gray-50 p-3 rounded-xl text-[11px] font-bold outline-none border border-gray-100 focus:border-blue-300">
+
                 <div class="grid grid-cols-2 gap-2">
                     <div class="space-y-1">
                         <label class="text-[8px] font-black text-gray-300 uppercase ml-2">Başlangıç</label>
@@ -130,7 +133,7 @@
 
     <script>
         let fires = JSON.parse(localStorage.getItem('fireRecords')) || [];
-        let filterMode = 'all'; // all, today, range
+        let filterMode = 'all'; 
 
         function init() { 
             setupAutocomplete(); 
@@ -205,8 +208,13 @@
             }
             
             saveAndRender();
-            this.reset();
-            if(!editId) document.getElementById('pending-container').scrollIntoView({ behavior: 'smooth' });
+            
+            // FORM SIFIRLAMA (Özellikleri korur)
+            document.getElementById('productName').value = '';
+            document.getElementById('code').value = '';
+            document.getElementById('amount').value = '';
+            document.getElementById('unitPrice').value = '';
+            // Kategori, KDV ve Birim Tipi dokunulmaz.
         });
 
         function editItem(id) {
@@ -291,8 +299,8 @@
                     <div class="bg-white p-4 rounded-3xl border border-gray-100 flex justify-between items-center shadow-sm animate-in">
                         <div>
                             <span class="text-[7px] font-black text-orange-500 bg-orange-50 px-2 py-0.5 rounded uppercase">${item.category}</span>
-                            <h3 class="font-black text-gray-800 text-xs mt-1 uppercase">${item.productName}</h3>
-                            <p class="text-[9px] text-gray-400 font-bold tracking-tighter">${item.amount} birim • ${item.time}</p>
+                            <h3 class="font-black text-gray-800 text-xs mt-1 uppercase">${item.productName} <span class="text-blue-500 ml-1 opacity-50">${item.code}</span></h3>
+                            <p class="text-[9px] text-gray-400 font-bold tracking-tighter">${item.amount} ${item.unitType === 'gram' ? 'KG/GR' : 'ADET'} • ${item.time}</p>
                         </div>
                         <div class="text-right flex items-center gap-3">
                             <p class="font-black text-sm text-gray-900">${item.total}₺</p>
@@ -308,67 +316,20 @@
             document.getElementById('pending-analysis').classList.toggle('hidden', unregistered.length === 0);
             document.getElementById('unregistered-total').innerText = unregistered.reduce((a,b) => a + parseFloat(b.total), 0).toFixed(2) + '₺';
 
-            // BEKLEYEN GRUP ANALİZİ
             const pStats = {};
             unregistered.forEach(i => pStats[i.category] = (pStats[i.category] || 0) + parseFloat(i.total));
             document.getElementById('unregistered-category-stats').innerHTML = Object.entries(pStats).map(([cat, val]) => `
                 <div class="bg-white p-3 rounded-2xl flex justify-between items-center border border-orange-100"><span class="text-[8px] font-black text-orange-900 uppercase">${cat}</span><span class="text-xs font-black text-orange-600">${val.toFixed(2)}₺</span></div>
             `).join('');
 
-            // 2. ARŞİV FİLTRELEME MANTIĞI
+            // 2. ARŞİV FİLTRELEME VE ARAMA
             let filteredReg = registered;
             const todayISO = new Date().toISOString().split('T')[0];
             const startDate = document.getElementById('start-date').value;
             const endDate = document.getElementById('end-date').value;
+            const searchTerm = document.getElementById('archiveSearch').value.toLowerCase();
 
             if (filterMode === 'today') {
                 filteredReg = registered.filter(f => f.fullDate === todayISO);
-                document.getElementById('total-label').innerText = "BUGÜNKÜ TOPLAM";
             } else if (filterMode === 'range' && startDate && endDate) {
-                filteredReg = registered.filter(f => f.fullDate >= startDate && f.fullDate <= endDate);
-                document.getElementById('total-label').innerText = "SEÇİLİ ARALIK TOPLAMI";
-            } else {
-                document.getElementById('total-label').innerText = "GENEL ARŞİV TOPLAMI";
-            }
-
-            document.getElementById('archive-section').style.display = registered.length > 0 ? 'block' : 'none';
-            document.getElementById('registered-list').innerHTML = filteredReg.length === 0 ? `<div class="p-6 text-center text-gray-400 font-bold text-xs italic">Seçilen aralıkta kayıt bulunamadı.</div>` : 
-                filteredReg.map(item => `
-                <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm mb-2">
-                    <div onclick="toggleAccordion('${item.id}')" class="flex justify-between items-center cursor-pointer">
-                        <div><span class="text-[7px] font-black text-gray-300 uppercase">${item.code} | ${item.category}</span><p class="font-black text-gray-700 text-xs uppercase">${item.productName}</p></div>
-                        <div class="flex items-center gap-4">
-                            <span class="font-black text-gray-900 text-xs">${item.total}₺</span>
-                            <div class="flex flex-col gap-1 border-l border-gray-50 pl-3">
-                                <button onclick="event.stopPropagation(); editItem('${item.id}')" class="text-blue-400 text-[10px]">DÜZENLE</button>
-                                <button onclick="event.stopPropagation(); deleteRecord('${item.id}')" class="text-red-200 text-[10px]">SİL</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="acc-${item.id}" class="hidden mt-3 pt-3 border-t border-dashed border-gray-100 space-y-2">
-                        ${item.history.map(h => `<div class="flex justify-between text-[9px] font-bold text-gray-400"><span>${h.date} | ${h.time || ''}</span><span>${h.amount} birim</span><span>${h.total}₺</span></div>`).join('')}
-                    </div>
-                </div>
-            `).join('');
-
-            // ARŞİV ANALİZ VE GRAFİK
-            const rStats = {};
-            filteredReg.forEach(i => rStats[i.category] = (rStats[i.category] || 0) + parseFloat(i.total));
-            const total = Object.values(rStats).reduce((a,b) => a+b, 0);
-            document.getElementById('archive-total').innerText = total.toFixed(2) + '₺';
-
-            const sorted = Object.entries(rStats).sort((a,b) => b[1]-a[1]);
-            const max = sorted.length > 0 ? sorted[0][1] : 1;
-            document.getElementById('chart-container').innerHTML = sorted.map(([cat, val]) => `
-                <div class="space-y-1"><div class="flex justify-between text-[9px] font-black uppercase text-slate-500"><span>${cat}</span><span class="text-white">${val.toFixed(2)}₺</span></div>
-                <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden"><div class="bg-blue-500 h-full bar-transition" style="width: ${(val/max)*100}%"></div></div></div>
-            `).join('');
-        }
-
-        function deleteRecord(id) { if(confirm("Kayıt kalıcı olarak silinecek. Onaylıyor musunuz?")) { fires = fires.filter(f => f.id !== id); saveAndRender(); } }
-        function toggleAccordion(id) { document.getElementById(`acc-${id}`).classList.toggle('hidden'); }
-        function resetSystem() { if(prompt("Tüm veriler silinsin mi? (2407)") === "2407") { localStorage.clear(); location.reload(); } }
-        init();
-    </script>
-</body>
-</html>
+                filteredReg = registered.filter(f => f.fullDate >= startDate && f.
