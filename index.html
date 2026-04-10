@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Atatürk Cd. Fire Takip V8.4</title>
+    <title>Atatürk Cd. Fire Takip V8.5</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
@@ -26,7 +26,7 @@
         <div class="flex justify-between items-end px-2">
             <div>
                 <h1 class="text-2xl font-black tracking-tighter uppercase">ATATÜRK CD.</h1>
-                <p class="text-[8px] text-gray-400 font-bold uppercase tracking-widest">Full Kontrol v8.4</p>
+                <p class="text-[8px] text-gray-400 font-bold uppercase tracking-widest">Full Kontrol v8.5</p>
             </div>
             <div class="text-right">
                 <span id="unregistered-total" class="text-xl font-black text-orange-600">0.00₺</span>
@@ -46,12 +46,9 @@
         <div class="bg-white rounded-[2.5rem] shadow-xl p-6 border border-gray-100">
             <form id="fire-form" class="space-y-3" autocomplete="off">
                 <input type="hidden" id="edit-id">
-                <input type="hidden" id="is-archive-edit" value="false"> <input type="hidden" id="old-price">
-                <div class="grid grid-cols-2 gap-2">
-                    <div class="relative">
-                        <input type="text" id="productName" list="prevProducts" placeholder="Ürün Adı" class="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold text-sm border-2 border-transparent focus:border-blue-500" required onchange="autoFill(this.value)">
-                        <datalist id="prevProducts"></datalist>
-                    </div>
+                <input type="hidden" id="edit-status" value="unregistered"> <input type="hidden" id="is-archive-edit-code" value=""> <div class="grid grid-cols-2 gap-2">
+                    <input type="text" id="productName" list="prevProducts" placeholder="Ürün Adı" class="bg-gray-50 p-4 rounded-2xl outline-none font-bold text-sm border-2 border-transparent focus:border-blue-500" required onchange="autoFill(this.value)">
+                    <datalist id="prevProducts"></datalist>
                     <input type="text" id="code" placeholder="Kod" class="bg-gray-50 p-4 rounded-2xl outline-none font-bold text-sm border-2 border-transparent focus:border-blue-500" required>
                 </div>
                 <div class="grid grid-cols-3 gap-2">
@@ -100,11 +97,7 @@
         let fires = JSON.parse(localStorage.getItem('fireRecords')) || [];
         let html5QrCode;
 
-        const categoryColors = {
-            "Mağaza": "bg-blue-500", "Kırmızı Et": "bg-red-500", "Tavuk": "bg-orange-400",
-            "SKT": "bg-purple-500", "Meyve Sebze": "bg-green-500", "Spot": "bg-amber-600"
-        };
-
+        const categoryColors = {"Mağaza": "bg-blue-500", "Kırmızı Et": "bg-red-500", "Tavuk": "bg-orange-400", "SKT": "bg-purple-500", "Meyve Sebze": "bg-green-500", "Spot": "bg-amber-600"};
         const cleanNum = (num) => parseFloat(parseFloat(num).toFixed(3));
 
         function updateDatalist() {
@@ -118,7 +111,6 @@
             if(product) {
                 document.getElementById('code').value = product.code;
                 document.getElementById('unitPrice').value = product.unitPrice;
-                document.getElementById('old-price').value = product.unitPrice;
                 document.getElementById('category').value = product.category;
                 document.getElementById('kdv').value = product.kdv;
                 document.getElementById('unitType').value = product.unitType;
@@ -133,10 +125,7 @@
                 await html5QrCode.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, (text) => {
                     document.getElementById('code').value = text.trim();
                     const item = fires.find(f => f.code === text.trim());
-                    if(item) {
-                        document.getElementById('productName').value = item.productName;
-                        autoFill(item.productName);
-                    }
+                    if(item) { document.getElementById('productName').value = item.productName; autoFill(item.productName); }
                     stopScanner();
                 });
             } catch (err) { stopScanner(); }
@@ -150,23 +139,10 @@
 
         function renderCharts(items) {
             const total = items.reduce((acc, curr) => acc + parseFloat(curr.total), 0);
-            const summary = items.reduce((acc, curr) => {
-                acc[curr.category] = (acc[curr.category] || 0) + parseFloat(curr.total);
-                return acc;
-            }, {});
-
+            const summary = items.reduce((acc, curr) => { acc[curr.category] = (acc[curr.category] || 0) + parseFloat(curr.total); return acc; }, {});
             document.getElementById('group-charts').innerHTML = Object.entries(summary).map(([cat, val]) => {
                 const percent = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
-                return `
-                    <div class="space-y-1">
-                        <div class="flex justify-between text-[10px] font-bold uppercase">
-                            <span>${cat}</span>
-                            <span class="text-slate-400">${val.toFixed(2)}₺ (%${percent})</span>
-                        </div>
-                        <div class="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
-                            <div class="progress-bar ${categoryColors[cat] || 'bg-slate-400'} h-full" style="width: ${percent}%"></div>
-                        </div>
-                    </div>`;
+                return `<div class="space-y-1"><div class="flex justify-between text-[10px] font-bold uppercase"><span>${cat}</span><span class="text-slate-400">${val.toFixed(2)}₺ (%${percent})</span></div><div class="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden"><div class="progress-bar ${categoryColors[cat] || 'bg-slate-400'} h-full" style="width: ${percent}%"></div></div></div>`;
             }).join('');
         }
 
@@ -177,20 +153,12 @@
             const allReg = fires.filter(f => f.status === 'registered');
 
             const groupedReg = allReg.reduce((acc, curr) => {
-                if (!acc[curr.code]) {
-                    acc[curr.code] = { ...curr, historyItems: [curr], total: parseFloat(curr.total) };
-                } else {
-                    acc[curr.code].historyItems.push(curr);
-                    acc[curr.code].total += parseFloat(curr.total);
-                    acc[curr.code].amount = cleanNum(parseFloat(acc[curr.code].amount) + parseFloat(curr.amount));
-                }
+                if (!acc[curr.code]) { acc[curr.code] = { ...curr, historyItems: [curr], total: parseFloat(curr.total) }; }
+                else { acc[curr.code].historyItems.push(curr); acc[curr.code].total += parseFloat(curr.total); acc[curr.code].amount = cleanNum(parseFloat(acc[curr.code].amount) + parseFloat(curr.amount)); }
                 return acc;
             }, {});
 
-            const filteredReg = Object.values(groupedReg).filter(i => 
-                i.productName.toLowerCase().includes(search) || i.code.includes(search)
-            );
-
+            const filteredReg = Object.values(groupedReg).filter(i => i.productName.toLowerCase().includes(search) || i.code.includes(search));
             renderCharts(allReg);
 
             const listMapper = (item, isArchive = false) => {
@@ -199,29 +167,12 @@
                 const deleteAction = isArchive ? `deleteByCode('${item.code}')` : `deleteRecord('${item.id}')`;
                 const editAction = isArchive ? `editArchiveGroup('${item.code}')` : `editItem('${item.id}')`;
 
-                return `
-                <div class="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm animate-in ${isMulti || !isArchive ? 'can-open' : ''}" 
-                     onclick="${(isMulti || !isArchive) ? "this.classList.toggle('open')" : ""}">
+                return `<div class="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm animate-in ${isMulti || !isArchive ? 'can-open' : ''}" onclick="${(isMulti || !isArchive) ? "this.classList.toggle('open')" : ""}">
                     <div class="flex justify-between items-center">
-                        <div>
-                            <span class="text-[8px] font-black text-blue-500 block">#${item.code}</span>
-                            <div class="text-[11px] font-black uppercase flex items-center gap-1">${item.productName} ${isMulti ? '↓' : ''}</div>
-                            <span class="text-[9px] text-gray-400 font-bold">${displayAmount}</span>
-                        </div>
-                        <div class="text-right flex items-center gap-2">
-                            <span class="font-black text-sm mr-1">${parseFloat(item.total).toFixed(2)}₺</span>
-                            <button onclick="event.stopPropagation(); ${editAction}" class="p-1.5 bg-gray-50 rounded-lg text-blue-500">✏️</button>
-                            <button onclick="event.stopPropagation(); ${deleteAction}" class="p-1.5 bg-gray-50 rounded-lg text-red-300">✕</button>
-                        </div>
+                        <div><span class="text-[8px] font-black text-blue-500 block">#${item.code}</span><div class="text-[11px] font-black uppercase flex items-center gap-1">${item.productName} ${isMulti ? '↓' : ''}</div><span class="text-[9px] text-gray-400 font-bold">${displayAmount}</span></div>
+                        <div class="text-right flex items-center gap-2"><span class="font-black text-sm mr-1">${parseFloat(item.total).toFixed(2)}₺</span><button onclick="event.stopPropagation(); ${editAction}" class="p-1.5 bg-gray-50 rounded-lg text-blue-500">✏️</button><button onclick="event.stopPropagation(); ${deleteAction}" class="p-1.5 bg-gray-50 rounded-lg text-red-300">✕</button></div>
                     </div>
-                    <div class="detail-row text-[9px] border-t pt-2 space-y-1">
-                        <div class="flex justify-between font-bold text-gray-500 uppercase">
-                            <span>Birim: ${item.unitPrice}₺</span>
-                            <span>KDV: %${item.kdv}</span>
-                            <span>${item.category}</span>
-                        </div>
-                        ${item.priceChange ? `<div class="text-red-500 font-black italic">⚠️ ${item.priceChange}</div>` : ''}
-                    </div>
+                    <div class="detail-row text-[9px] border-t pt-2 space-y-1"><div class="flex justify-between font-bold text-gray-500 uppercase"><span>Birim: ${item.unitPrice}₺</span><span>KDV: %${item.kdv}</span><span>${item.category}</span></div></div>
                 </div>`;
             };
 
@@ -235,10 +186,11 @@
         document.getElementById('fire-form').addEventListener('submit', function(e) {
             e.preventDefault();
             const editId = document.getElementById('edit-id').value;
+            const status = document.getElementById('edit-status').value;
             const code = document.getElementById('code').value;
             const unitType = document.getElementById('unitType').value;
-            const price = parseFloat(document.getElementById('unitPrice').value);
             const amount = parseFloat(document.getElementById('amount').value);
+            const price = parseFloat(document.getElementById('unitPrice').value);
             let finalAmount = unitType === 'gram' ? amount / 1000 : amount;
             
             const item = {
@@ -251,14 +203,13 @@
                 kdv: document.getElementById('kdv').value,
                 category: document.getElementById('category').value,
                 fullDate: new Date().toLocaleDateString('tr-TR'),
-                status: 'unregistered',
+                status: status, // Edit statüsü neyse o kalır
                 total: (finalAmount * price).toFixed(2)
             };
 
             if(editId) {
                 const idx = fires.findIndex(f => f.id === editId);
-                if(idx !== -1) fires[idx] = item;
-                else fires.unshift(item);
+                if(idx !== -1) fires[idx] = item; else fires.unshift(item);
             } else {
                 fires.unshift(item);
             }
@@ -269,7 +220,8 @@
 
         function editItem(id) {
             const i = fires.find(f => f.id === id);
-            fillForm(i, false);
+            document.getElementById('edit-status').value = i.status;
+            fillForm(i);
         }
 
         function editArchiveGroup(code) {
@@ -279,17 +231,18 @@
             const totalAmount = allReg.reduce((sum, item) => sum + parseFloat(item.amount), 0);
             const baseItem = {...allReg[0], amount: totalAmount};
 
-            // Geçici olarak arşive bu kodun kayıtlarını 'yedek'le ve listeden kaldır
+            // Yedekle ve Arşivden Geçici Olarak Çıkar
             localStorage.setItem('archive_backup_' + code, JSON.stringify(allReg));
             fires = fires.filter(f => !(f.status === 'registered' && f.code === code));
             
-            fillForm(baseItem, true);
+            document.getElementById('edit-status').value = 'registered'; // Statüyü Arşiv olarak kilitle
+            document.getElementById('is-archive-edit-code').value = code;
+            fillForm(baseItem);
             render();
         }
 
-        function fillForm(i, isArchive) {
+        function fillForm(i) {
             document.getElementById('edit-id').value = i.id;
-            document.getElementById('is-archive-edit').value = isArchive ? i.code : "false";
             document.getElementById('productName').value = i.productName;
             document.getElementById('code').value = i.code;
             document.getElementById('amount').value = i.unitType === 'gram' ? cleanNum(i.amount * 1000) : cleanNum(i.amount);
@@ -303,21 +256,18 @@
         }
 
         function cancelEdit() {
-            const archiveCode = document.getElementById('is-archive-edit').value;
-            // Eğer arşivden çekilmişse ve vazgeçildiyse, yedekten geri yükle
-            if(archiveCode !== "false") {
+            const archiveCode = document.getElementById('is-archive-edit-code').value;
+            if(archiveCode) {
                 const backup = JSON.parse(localStorage.getItem('archive_backup_' + archiveCode));
-                if(backup) {
-                    fires = [...fires, ...backup];
-                    localStorage.removeItem('archive_backup_' + archiveCode);
-                }
+                if(backup) { fires = [...fires, ...backup]; localStorage.removeItem('archive_backup_' + archiveCode); }
             }
             finishForm();
         }
 
         function finishForm() {
             document.getElementById('edit-id').value = '';
-            document.getElementById('is-archive-edit').value = "false";
+            document.getElementById('edit-status').value = 'unregistered';
+            document.getElementById('is-archive-edit-code').value = '';
             document.getElementById('fire-form').reset();
             document.getElementById('submit-btn').innerText = "LİSTEYE EKLE";
             document.getElementById('cancel-edit-btn').classList.add('hidden');
@@ -325,19 +275,11 @@
         }
 
         function deleteRecord(id) {
-            if(confirm('Seçili kayıt kalıcı olarak silinsin mi?')) {
-                fires = fires.filter(f => f.id !== id);
-                localStorage.setItem('fireRecords', JSON.stringify(fires));
-                render();
-            }
+            if(confirm('Seçili kayıt kalıcı olarak silinsin mi?')) { fires = fires.filter(f => f.id !== id); localStorage.setItem('fireRecords', JSON.stringify(fires)); render(); }
         }
 
         function deleteByCode(code) {
-            if(confirm('Bu ürünün TÜM ARŞİV kayıtları kalıcı olarak silinsin mi?')) {
-                fires = fires.filter(f => f.code !== code);
-                localStorage.setItem('fireRecords', JSON.stringify(fires));
-                render();
-            }
+            if(confirm('Bu ürünün TÜM ARŞİV kayıtları kalıcı olarak silinsin mi?')) { fires = fires.filter(f => f.code !== code); localStorage.setItem('fireRecords', JSON.stringify(fires)); render(); }
         }
 
         function registerAll() {
@@ -349,5 +291,4 @@
         window.onload = render;
     </script>
 </body>
-    </html>
-    
+</html>
