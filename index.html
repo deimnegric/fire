@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Atatürk Cd. Fire Takip V8.1</title>
+    <title>Atatürk Cd. Fire Takip V8.4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
@@ -26,15 +26,13 @@
         <div class="flex justify-between items-end px-2">
             <div>
                 <h1 class="text-2xl font-black tracking-tighter uppercase">ATATÜRK CD.</h1>
-                <p class="text-[8px] text-gray-400 font-bold uppercase tracking-widest">Full Kontrol v8.1</p>
+                <p class="text-[8px] text-gray-400 font-bold uppercase tracking-widest">Full Kontrol v8.4</p>
             </div>
             <div class="text-right">
                 <span id="unregistered-total" class="text-xl font-black text-orange-600">0.00₺</span>
                 <p class="text-[7px] font-black text-gray-400 uppercase">BEKLEYEN</p>
             </div>
         </div>
-
-        <div id="unreg-group-summary" class="flex flex-wrap gap-2 px-2"></div>
 
         <div id="scanner-container" class="hidden bg-white rounded-[2rem] shadow-2xl p-2 border-2 border-blue-500 animate-in">
             <div id="reader"></div>
@@ -48,7 +46,7 @@
         <div class="bg-white rounded-[2.5rem] shadow-xl p-6 border border-gray-100">
             <form id="fire-form" class="space-y-3" autocomplete="off">
                 <input type="hidden" id="edit-id">
-                <input type="hidden" id="old-price">
+                <input type="hidden" id="is-archive-edit" value="false"> <input type="hidden" id="old-price">
                 <div class="grid grid-cols-2 gap-2">
                     <div class="relative">
                         <input type="text" id="productName" list="prevProducts" placeholder="Ürün Adı" class="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold text-sm border-2 border-transparent focus:border-blue-500" required onchange="autoFill(this.value)">
@@ -83,7 +81,6 @@
         <div class="pt-6 border-t border-gray-200 space-y-3">
             <h2 class="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Arşiv Geçmişi</h2>
             <input type="text" id="archiveSearch" oninput="render()" placeholder="Ürün veya kod ara..." class="w-full bg-white p-3 rounded-xl text-xs font-bold outline-none border border-gray-200">
-            <div id="reg-group-summary" class="flex flex-wrap gap-2 px-1"></div>
         </div>
 
         <div id="registered-list" class="space-y-2"></div>
@@ -108,7 +105,6 @@
             "SKT": "bg-purple-500", "Meyve Sebze": "bg-green-500", "Spot": "bg-amber-600"
         };
 
-        // Rakamları sıfırdan arındırıp gösteren yardımcı fonksiyon
         const cleanNum = (num) => parseFloat(parseFloat(num).toFixed(3));
 
         function updateDatalist() {
@@ -126,7 +122,6 @@
                 document.getElementById('category').value = product.category;
                 document.getElementById('kdv').value = product.kdv;
                 document.getElementById('unitType').value = product.unitType;
-                document.getElementById('amount').focus();
             }
         }
 
@@ -171,8 +166,7 @@
                         <div class="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
                             <div class="progress-bar ${categoryColors[cat] || 'bg-slate-400'} h-full" style="width: ${percent}%"></div>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             }).join('');
         }
 
@@ -201,9 +195,9 @@
 
             const listMapper = (item, isArchive = false) => {
                 const isMulti = isArchive && item.historyItems.length > 1;
-                const displayAmount = item.unitType === 'gram' 
-                    ? cleanNum(item.amount * 1000) + ' gr' 
-                    : cleanNum(item.amount) + ' ad';
+                const displayAmount = item.unitType === 'gram' ? cleanNum(item.amount * 1000) + ' gr' : cleanNum(item.amount) + ' ad';
+                const deleteAction = isArchive ? `deleteByCode('${item.code}')` : `deleteRecord('${item.id}')`;
+                const editAction = isArchive ? `editArchiveGroup('${item.code}')` : `editItem('${item.id}')`;
 
                 return `
                 <div class="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm animate-in ${isMulti || !isArchive ? 'can-open' : ''}" 
@@ -211,15 +205,13 @@
                     <div class="flex justify-between items-center">
                         <div>
                             <span class="text-[8px] font-black text-blue-500 block">#${item.code}</span>
-                            <div class="text-[11px] font-black uppercase flex items-center gap-1">
-                                ${item.productName} ${isMulti ? '<span class="text-blue-500 text-[8px]">↓</span>' : ''}
-                            </div>
+                            <div class="text-[11px] font-black uppercase flex items-center gap-1">${item.productName} ${isMulti ? '↓' : ''}</div>
                             <span class="text-[9px] text-gray-400 font-bold">${displayAmount}</span>
                         </div>
                         <div class="text-right flex items-center gap-2">
-                            <span class="font-black text-sm">${parseFloat(item.total).toFixed(2)}₺</span>
-                            ${!isArchive ? `<button onclick="event.stopPropagation(); editItem('${item.id}')" class="p-1">✏️</button>` : ''}
-                            ${!isArchive ? `<button onclick="event.stopPropagation(); deleteRecord('${item.id}')" class="p-1 text-red-200">✕</button>` : ''}
+                            <span class="font-black text-sm mr-1">${parseFloat(item.total).toFixed(2)}₺</span>
+                            <button onclick="event.stopPropagation(); ${editAction}" class="p-1.5 bg-gray-50 rounded-lg text-blue-500">✏️</button>
+                            <button onclick="event.stopPropagation(); ${deleteAction}" class="p-1.5 bg-gray-50 rounded-lg text-red-300">✕</button>
                         </div>
                     </div>
                     <div class="detail-row text-[9px] border-t pt-2 space-y-1">
@@ -229,23 +221,12 @@
                             <span>${item.category}</span>
                         </div>
                         ${item.priceChange ? `<div class="text-red-500 font-black italic">⚠️ ${item.priceChange}</div>` : ''}
-                        ${isArchive && isMulti ? `
-                            <div class="mt-2 space-y-1">
-                                ${item.historyItems.map(h => `
-                                    <div class="flex justify-between text-[8px] border-b border-gray-100 pb-1">
-                                        <span class="text-gray-400">${h.fullDate}</span>
-                                        <span>${h.unitType==='gram' ? cleanNum(h.amount*1000)+'gr' : cleanNum(h.amount)+'ad'} x ${h.unitPrice}₺</span>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        ` : ''}
                     </div>
                 </div>`;
             };
 
             document.getElementById('unregistered-list').innerHTML = unreg.map(i => listMapper(i, false)).join('');
             document.getElementById('registered-list').innerHTML = filteredReg.map(i => listMapper(i, true)).join('');
-
             document.getElementById('unregistered-total').innerText = unreg.reduce((a, b) => a + parseFloat(b.total), 0).toFixed(2) + '₺';
             document.getElementById('archive-total').innerText = allReg.reduce((a, b) => a + parseFloat(b.total), 0).toFixed(2) + '₺';
             document.getElementById('register-all-btn').classList.toggle('hidden', unreg.length === 0);
@@ -254,69 +235,65 @@
         document.getElementById('fire-form').addEventListener('submit', function(e) {
             e.preventDefault();
             const editId = document.getElementById('edit-id').value;
-            const now = new Date();
             const code = document.getElementById('code').value;
             const unitType = document.getElementById('unitType').value;
-            let rawAmount = parseFloat(document.getElementById('amount').value);
             const price = parseFloat(document.getElementById('unitPrice').value);
-            const oldPrice = parseFloat(document.getElementById('old-price').value);
+            const amount = parseFloat(document.getElementById('amount').value);
+            let finalAmount = unitType === 'gram' ? amount / 1000 : amount;
             
-            let finalAmount = unitType === 'gram' ? rawAmount / 1000 : rawAmount;
-            const total = (finalAmount * price).toFixed(2);
-            
-            let priceChangeNote = (oldPrice && oldPrice !== price) ? `FİYAT DEĞİŞTİ: ${oldPrice}₺ ➔ ${price}₺` : "";
+            const item = {
+                id: editId || Date.now().toString(),
+                code: code,
+                productName: document.getElementById('productName').value,
+                unitType: unitType,
+                amount: cleanNum(finalAmount),
+                unitPrice: price,
+                kdv: document.getElementById('kdv').value,
+                category: document.getElementById('category').value,
+                fullDate: new Date().toLocaleDateString('tr-TR'),
+                status: 'unregistered',
+                total: (finalAmount * price).toFixed(2)
+            };
 
-            const existingIndex = fires.findIndex(f => f.code === code && f.status === 'unregistered' && !editId);
-            
-            if(existingIndex !== -1) {
-                const old = fires[existingIndex];
-                fires[existingIndex].amount = cleanNum(parseFloat(old.amount) + finalAmount);
-                fires[existingIndex].total = (parseFloat(old.total) + parseFloat(total)).toFixed(2);
-                if(priceChangeNote) fires[existingIndex].priceChange = priceChangeNote;
+            if(editId) {
+                const idx = fires.findIndex(f => f.id === editId);
+                if(idx !== -1) fires[idx] = item;
+                else fires.unshift(item);
             } else {
-                const item = {
-                    id: editId || Date.now().toString(),
-                    code: code,
-                    productName: document.getElementById('productName').value,
-                    unitType: unitType,
-                    amount: cleanNum(finalAmount),
-                    unitPrice: price,
-                    kdv: document.getElementById('kdv').value,
-                    category: document.getElementById('category').value,
-                    fullDate: now.toLocaleDateString('tr-TR'),
-                    status: 'unregistered',
-                    total: total,
-                    priceChange: priceChangeNote
-                };
-
-                if(editId) {
-                    const idx = fires.findIndex(f => f.id === editId);
-                    item.status = fires[idx].status;
-                    fires[idx] = item;
-                    cancelEdit();
-                } else {
-                    fires.unshift(item);
-                }
+                fires.unshift(item);
             }
             
             localStorage.setItem('fireRecords', JSON.stringify(fires));
-            render();
-            
-            const tempCat = document.getElementById('category').value;
-            const tempKdv = document.getElementById('kdv').value;
-            this.reset();
-            document.getElementById('category').value = tempCat;
-            document.getElementById('kdv').value = tempKdv;
+            finishForm();
         });
 
         function editItem(id) {
             const i = fires.find(f => f.id === id);
+            fillForm(i, false);
+        }
+
+        function editArchiveGroup(code) {
+            const allReg = fires.filter(f => f.status === 'registered' && f.code === code);
+            if(allReg.length === 0) return;
+            
+            const totalAmount = allReg.reduce((sum, item) => sum + parseFloat(item.amount), 0);
+            const baseItem = {...allReg[0], amount: totalAmount};
+
+            // Geçici olarak arşive bu kodun kayıtlarını 'yedek'le ve listeden kaldır
+            localStorage.setItem('archive_backup_' + code, JSON.stringify(allReg));
+            fires = fires.filter(f => !(f.status === 'registered' && f.code === code));
+            
+            fillForm(baseItem, true);
+            render();
+        }
+
+        function fillForm(i, isArchive) {
             document.getElementById('edit-id').value = i.id;
+            document.getElementById('is-archive-edit').value = isArchive ? i.code : "false";
             document.getElementById('productName').value = i.productName;
             document.getElementById('code').value = i.code;
             document.getElementById('amount').value = i.unitType === 'gram' ? cleanNum(i.amount * 1000) : cleanNum(i.amount);
             document.getElementById('unitPrice').value = i.unitPrice;
-            document.getElementById('old-price').value = i.unitPrice;
             document.getElementById('category').value = i.category;
             document.getElementById('unitType').value = i.unitType;
             document.getElementById('kdv').value = i.kdv;
@@ -326,15 +303,38 @@
         }
 
         function cancelEdit() {
+            const archiveCode = document.getElementById('is-archive-edit').value;
+            // Eğer arşivden çekilmişse ve vazgeçildiyse, yedekten geri yükle
+            if(archiveCode !== "false") {
+                const backup = JSON.parse(localStorage.getItem('archive_backup_' + archiveCode));
+                if(backup) {
+                    fires = [...fires, ...backup];
+                    localStorage.removeItem('archive_backup_' + archiveCode);
+                }
+            }
+            finishForm();
+        }
+
+        function finishForm() {
             document.getElementById('edit-id').value = '';
+            document.getElementById('is-archive-edit').value = "false";
             document.getElementById('fire-form').reset();
             document.getElementById('submit-btn').innerText = "LİSTEYE EKLE";
             document.getElementById('cancel-edit-btn').classList.add('hidden');
+            render();
         }
 
         function deleteRecord(id) {
-            if(confirm('Silinsin mi?')) {
+            if(confirm('Seçili kayıt kalıcı olarak silinsin mi?')) {
                 fires = fires.filter(f => f.id !== id);
+                localStorage.setItem('fireRecords', JSON.stringify(fires));
+                render();
+            }
+        }
+
+        function deleteByCode(code) {
+            if(confirm('Bu ürünün TÜM ARŞİV kayıtları kalıcı olarak silinsin mi?')) {
+                fires = fires.filter(f => f.code !== code);
                 localStorage.setItem('fireRecords', JSON.stringify(fires));
                 render();
             }
@@ -349,4 +349,5 @@
         window.onload = render;
     </script>
 </body>
-</html>
+    </html>
+    
