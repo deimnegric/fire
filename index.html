@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Atatürk Cd. Fire Takip V8.0</title>
+    <title>Atatürk Cd. Fire Takip V8.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
@@ -26,7 +26,7 @@
         <div class="flex justify-between items-end px-2">
             <div>
                 <h1 class="text-2xl font-black tracking-tighter uppercase">ATATÜRK CD.</h1>
-                <p class="text-[8px] text-gray-400 font-bold uppercase tracking-widest">Full Kontrol v8.0</p>
+                <p class="text-[8px] text-gray-400 font-bold uppercase tracking-widest">Full Kontrol v8.1</p>
             </div>
             <div class="text-right">
                 <span id="unregistered-total" class="text-xl font-black text-orange-600">0.00₺</span>
@@ -48,7 +48,8 @@
         <div class="bg-white rounded-[2.5rem] shadow-xl p-6 border border-gray-100">
             <form id="fire-form" class="space-y-3" autocomplete="off">
                 <input type="hidden" id="edit-id">
-                <input type="hidden" id="old-price"> <div class="grid grid-cols-2 gap-2">
+                <input type="hidden" id="old-price">
+                <div class="grid grid-cols-2 gap-2">
                     <div class="relative">
                         <input type="text" id="productName" list="prevProducts" placeholder="Ürün Adı" class="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold text-sm border-2 border-transparent focus:border-blue-500" required onchange="autoFill(this.value)">
                         <datalist id="prevProducts"></datalist>
@@ -60,7 +61,7 @@
                         <option value="gram">GRAM</option>
                         <option value="Adet">ADET</option>
                     </select>
-                    <input type="number" id="amount" step="0.001" placeholder="Miktar" class="col-span-2 bg-gray-50 p-4 rounded-2xl outline-none font-bold text-sm border-2 border-transparent focus:border-blue-500" required>
+                    <input type="number" id="amount" step="any" placeholder="Miktar" class="col-span-2 bg-gray-50 p-4 rounded-2xl outline-none font-bold text-sm border-2 border-transparent focus:border-blue-500" required>
                 </div>
                 <div class="grid grid-cols-3 gap-2">
                     <input type="number" step="0.01" id="unitPrice" placeholder="Birim Fiyat" class="col-span-2 bg-gray-50 p-4 rounded-2xl outline-none font-black text-blue-600 border-2 border-transparent focus:border-blue-500" required>
@@ -107,6 +108,9 @@
             "SKT": "bg-purple-500", "Meyve Sebze": "bg-green-500", "Spot": "bg-amber-600"
         };
 
+        // Rakamları sıfırdan arındırıp gösteren yardımcı fonksiyon
+        const cleanNum = (num) => parseFloat(parseFloat(num).toFixed(3));
+
         function updateDatalist() {
             const list = document.getElementById('prevProducts');
             const uniqueProducts = [...new Map(fires.map(item => [item.productName, item])).values()];
@@ -118,7 +122,7 @@
             if(product) {
                 document.getElementById('code').value = product.code;
                 document.getElementById('unitPrice').value = product.unitPrice;
-                document.getElementById('old-price').value = product.unitPrice; // Eski fiyatı kaydet
+                document.getElementById('old-price').value = product.unitPrice;
                 document.getElementById('category').value = product.category;
                 document.getElementById('kdv').value = product.kdv;
                 document.getElementById('unitType').value = product.unitType;
@@ -158,7 +162,6 @@
 
             document.getElementById('group-charts').innerHTML = Object.entries(summary).map(([cat, val]) => {
                 const percent = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
-                const color = categoryColors[cat] || "bg-slate-400";
                 return `
                     <div class="space-y-1">
                         <div class="flex justify-between text-[10px] font-bold uppercase">
@@ -166,7 +169,7 @@
                             <span class="text-slate-400">${val.toFixed(2)}₺ (%${percent})</span>
                         </div>
                         <div class="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
-                            <div class="progress-bar ${color} h-full" style="width: ${percent}%"></div>
+                            <div class="progress-bar ${categoryColors[cat] || 'bg-slate-400'} h-full" style="width: ${percent}%"></div>
                         </div>
                     </div>
                 `;
@@ -185,7 +188,7 @@
                 } else {
                     acc[curr.code].historyItems.push(curr);
                     acc[curr.code].total += parseFloat(curr.total);
-                    acc[curr.code].amount = (parseFloat(acc[curr.code].amount) + parseFloat(curr.amount)).toFixed(3);
+                    acc[curr.code].amount = cleanNum(parseFloat(acc[curr.code].amount) + parseFloat(curr.amount));
                 }
                 return acc;
             }, {});
@@ -194,11 +197,14 @@
                 i.productName.toLowerCase().includes(search) || i.code.includes(search)
             );
 
-            renderCharts(allReg); // Arşiv analizi
+            renderCharts(allReg);
 
-            // Listeleri render et (Mevcut yapıyı koru)
             const listMapper = (item, isArchive = false) => {
                 const isMulti = isArchive && item.historyItems.length > 1;
+                const displayAmount = item.unitType === 'gram' 
+                    ? cleanNum(item.amount * 1000) + ' gr' 
+                    : cleanNum(item.amount) + ' ad';
+
                 return `
                 <div class="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm animate-in ${isMulti || !isArchive ? 'can-open' : ''}" 
                      onclick="${(isMulti || !isArchive) ? "this.classList.toggle('open')" : ""}">
@@ -208,9 +214,7 @@
                             <div class="text-[11px] font-black uppercase flex items-center gap-1">
                                 ${item.productName} ${isMulti ? '<span class="text-blue-500 text-[8px]">↓</span>' : ''}
                             </div>
-                            <span class="text-[9px] text-gray-400 font-bold">
-                                ${item.unitType==='gram' ? (item.amount * 1000).toFixed(0) + ' gr' : item.amount + ' ad'}
-                            </span>
+                            <span class="text-[9px] text-gray-400 font-bold">${displayAmount}</span>
                         </div>
                         <div class="text-right flex items-center gap-2">
                             <span class="font-black text-sm">${parseFloat(item.total).toFixed(2)}₺</span>
@@ -230,7 +234,7 @@
                                 ${item.historyItems.map(h => `
                                     <div class="flex justify-between text-[8px] border-b border-gray-100 pb-1">
                                         <span class="text-gray-400">${h.fullDate}</span>
-                                        <span>${h.unitType==='gram'?(h.amount*1000).toFixed(0)+'gr':h.amount+'ad'} x ${h.unitPrice}₺</span>
+                                        <span>${h.unitType==='gram' ? cleanNum(h.amount*1000)+'gr' : cleanNum(h.amount)+'ad'} x ${h.unitPrice}₺</span>
                                     </div>
                                 `).join('')}
                             </div>
@@ -260,17 +264,13 @@
             let finalAmount = unitType === 'gram' ? rawAmount / 1000 : rawAmount;
             const total = (finalAmount * price).toFixed(2);
             
-            // Fiyat Değişim Logu Kontrolü
-            let priceChangeNote = "";
-            if(oldPrice && oldPrice !== price) {
-                priceChangeNote = `FİYAT DEĞİŞTİ: ${oldPrice}₺ ➔ ${price}₺`;
-            }
+            let priceChangeNote = (oldPrice && oldPrice !== price) ? `FİYAT DEĞİŞTİ: ${oldPrice}₺ ➔ ${price}₺` : "";
 
             const existingIndex = fires.findIndex(f => f.code === code && f.status === 'unregistered' && !editId);
             
             if(existingIndex !== -1) {
                 const old = fires[existingIndex];
-                fires[existingIndex].amount = (parseFloat(old.amount) + finalAmount).toFixed(3);
+                fires[existingIndex].amount = cleanNum(parseFloat(old.amount) + finalAmount);
                 fires[existingIndex].total = (parseFloat(old.total) + parseFloat(total)).toFixed(2);
                 if(priceChangeNote) fires[existingIndex].priceChange = priceChangeNote;
             } else {
@@ -279,7 +279,7 @@
                     code: code,
                     productName: document.getElementById('productName').value,
                     unitType: unitType,
-                    amount: finalAmount.toFixed(3),
+                    amount: cleanNum(finalAmount),
                     unitPrice: price,
                     kdv: document.getElementById('kdv').value,
                     category: document.getElementById('category').value,
@@ -314,7 +314,7 @@
             document.getElementById('edit-id').value = i.id;
             document.getElementById('productName').value = i.productName;
             document.getElementById('code').value = i.code;
-            document.getElementById('amount').value = i.unitType === 'gram' ? i.amount * 1000 : i.amount;
+            document.getElementById('amount').value = i.unitType === 'gram' ? cleanNum(i.amount * 1000) : cleanNum(i.amount);
             document.getElementById('unitPrice').value = i.unitPrice;
             document.getElementById('old-price').value = i.unitPrice;
             document.getElementById('category').value = i.category;
