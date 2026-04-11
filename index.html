@@ -46,7 +46,9 @@
         <div class="bg-white rounded-[2.5rem] shadow-xl p-6 border border-gray-100">
             <form id="fire-form" class="space-y-3" autocomplete="off">
                 <input type="hidden" id="edit-id">
-                <input type="hidden" id="edit-status" value="unregistered"> <input type="hidden" id="is-archive-edit-code" value=""> <div class="grid grid-cols-2 gap-2">
+                <input type="hidden" id="edit-status" value="unregistered">
+                <input type="hidden" id="is-archive-edit-code" value="">
+                <div class="grid grid-cols-2 gap-2">
                     <input type="text" id="productName" list="prevProducts" placeholder="Ürün Adı" class="bg-gray-50 p-4 rounded-2xl outline-none font-bold text-sm border-2 border-transparent focus:border-blue-500" required onchange="autoFill(this.value)">
                     <datalist id="prevProducts"></datalist>
                     <input type="text" id="code" placeholder="Kod" class="bg-gray-50 p-4 rounded-2xl outline-none font-bold text-sm border-2 border-transparent focus:border-blue-500" required>
@@ -75,17 +77,24 @@
         <div id="unregistered-list" class="space-y-2"></div>
         <button id="register-all-btn" onclick="registerAll()" class="hidden w-full py-4 bg-orange-500 text-white rounded-2xl font-black text-sm shadow-xl uppercase">Hepsini Onayla</button>
         
+        <div class="space-y-6">
+            <div class="space-y-3">
+                <p class="text-[10px] font-black text-orange-500 uppercase tracking-widest px-2">🟠 Bekleyen Gruplar</p>
+                <div id="unreg-charts" class="grid grid-cols-2 gap-3 px-1"></div>
+            </div>
+
+            <div class="space-y-3 pt-4 border-t border-gray-200">
+                <p class="text-[10px] font-black text-blue-500 uppercase tracking-widest px-2">🔵 Arşivlenmiş Gruplar</p>
+                <div id="reg-charts" class="grid grid-cols-2 gap-3 px-1"></div>
+            </div>
+        </div>
+
         <div class="pt-6 border-t border-gray-200 space-y-3">
             <h2 class="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Arşiv Geçmişi</h2>
             <input type="text" id="archiveSearch" oninput="render()" placeholder="Ürün veya kod ara..." class="w-full bg-white p-3 rounded-xl text-xs font-bold outline-none border border-gray-200">
         </div>
 
         <div id="registered-list" class="space-y-2"></div>
-        
-        <div class="bg-white rounded-3xl p-5 border border-gray-100 shadow-sm space-y-3">
-            <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Grup Bazlı Fire Dağılımı</p>
-            <div id="group-charts" class="space-y-2"></div>
-        </div>
 
         <div class="bg-slate-900 rounded-[2.5rem] p-6 text-white shadow-2xl">
             <p class="text-[8px] font-black text-slate-400 uppercase">TOPLAM ARŞİV</p>
@@ -137,20 +146,48 @@
             document.getElementById('start-scan-btn').classList.remove('hidden');
         }
 
-        function renderCharts(items) {
+        function renderCharts(items, containerId) {
+            const container = document.getElementById(containerId);
+            if(items.length === 0) {
+                container.innerHTML = '<p class="col-span-2 text-[8px] text-gray-400 italic px-2">Kayıt yok.</p>';
+                return;
+            }
             const total = items.reduce((acc, curr) => acc + parseFloat(curr.total), 0);
-            const summary = items.reduce((acc, curr) => { acc[curr.category] = (acc[curr.category] || 0) + parseFloat(curr.total); return acc; }, {});
-            document.getElementById('group-charts').innerHTML = Object.entries(summary).map(([cat, val]) => {
-                const percent = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
-                return `<div class="space-y-1"><div class="flex justify-between text-[10px] font-bold uppercase"><span>${cat}</span><span class="text-slate-400">${val.toFixed(2)}₺ (%${percent})</span></div><div class="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden"><div class="progress-bar ${categoryColors[cat] || 'bg-slate-400'} h-full" style="width: ${percent}%"></div></div></div>`;
+            const summary = items.reduce((acc, curr) => { 
+                if(!acc[curr.category]) acc[curr.category] = { tl: 0 };
+                acc[curr.category].tl += parseFloat(curr.total);
+                return acc; 
+            }, {});
+            
+            container.innerHTML = Object.entries(summary).map(([cat, data]) => {
+                const percent = total > 0 ? ((data.tl / total) * 100).toFixed(1) : 0;
+                const bgColor = categoryColors[cat] || 'bg-slate-500';
+                
+                return `
+                <div class="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm space-y-2 animate-in">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full ${bgColor}"></div>
+                        <span class="text-[9px] font-black uppercase truncate">${cat}</span>
+                    </div>
+                    <div>
+                        <div class="text-[13px] font-black">${data.tl.toFixed(2)}₺</div>
+                        <div class="text-[8px] font-bold text-gray-400 uppercase">%${percent} Pay</div>
+                    </div>
+                    <div class="w-full bg-gray-50 h-1 rounded-full overflow-hidden">
+                        <div class="progress-bar ${bgColor} h-full" style="width: ${percent}%"></div>
+                    </div>
+                </div>`;
             }).join('');
         }
 
         function render() {
             updateDatalist();
             const unreg = fires.filter(f => f.status === 'unregistered');
-            const search = document.getElementById('archiveSearch').value.toLowerCase().trim();
             const allReg = fires.filter(f => f.status === 'registered');
+            const search = document.getElementById('archiveSearch').value.toLowerCase().trim();
+
+            renderCharts(unreg, 'unreg-charts');
+            renderCharts(allReg, 'reg-charts');
 
             const groupedReg = allReg.reduce((acc, curr) => {
                 if (!acc[curr.code]) { acc[curr.code] = { ...curr, historyItems: [curr], total: parseFloat(curr.total) }; }
@@ -159,20 +196,28 @@
             }, {});
 
             const filteredReg = Object.values(groupedReg).filter(i => i.productName.toLowerCase().includes(search) || i.code.includes(search));
-            renderCharts(allReg);
 
             const listMapper = (item, isArchive = false) => {
                 const isMulti = isArchive && item.historyItems.length > 1;
                 const displayAmount = item.unitType === 'gram' ? cleanNum(item.amount * 1000) + ' gr' : cleanNum(item.amount) + ' ad';
+                const amountAndPrice = `${displayAmount} x ${item.unitPrice}₺`;
                 const deleteAction = isArchive ? `deleteByCode('${item.code}')` : `deleteRecord('${item.id}')`;
                 const editAction = isArchive ? `editArchiveGroup('${item.code}')` : `editItem('${item.id}')`;
 
                 return `<div class="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm animate-in ${isMulti || !isArchive ? 'can-open' : ''}" onclick="${(isMulti || !isArchive) ? "this.classList.toggle('open')" : ""}">
                     <div class="flex justify-between items-center">
-                        <div><span class="text-[8px] font-black text-blue-500 block">#${item.code}</span><div class="text-[11px] font-black uppercase flex items-center gap-1">${item.productName} ${isMulti ? '↓' : ''}</div><span class="text-[9px] text-gray-400 font-bold">${displayAmount}</span></div>
-                        <div class="text-right flex items-center gap-2"><span class="font-black text-sm mr-1">${parseFloat(item.total).toFixed(2)}₺</span><button onclick="event.stopPropagation(); ${editAction}" class="p-1.5 bg-gray-50 rounded-lg text-blue-500">✏️</button><button onclick="event.stopPropagation(); ${deleteAction}" class="p-1.5 bg-gray-50 rounded-lg text-red-300">✕</button></div>
+                        <div>
+                            <span class="text-[8px] font-black text-blue-500 block">#${item.code}</span>
+                            <div class="text-[11px] font-black uppercase flex items-center gap-1">${item.productName} ${isMulti ? '↓' : ''}</div>
+                            <span class="text-[9px] text-gray-400 font-bold">${amountAndPrice}</span>
+                        </div>
+                        <div class="text-right flex items-center gap-2">
+                            <span class="font-black text-sm mr-1">${parseFloat(item.total).toFixed(2)}₺</span>
+                            <button onclick="event.stopPropagation(); ${editAction}" class="p-1.5 bg-gray-50 rounded-lg text-blue-500">✏️</button>
+                            <button onclick="event.stopPropagation(); ${deleteAction}" class="p-1.5 bg-gray-50 rounded-lg text-red-300">✕</button>
+                        </div>
                     </div>
-                    <div class="detail-row text-[9px] border-t pt-2 space-y-1"><div class="flex justify-between font-bold text-gray-500 uppercase"><span>Birim: ${item.unitPrice}₺</span><span>KDV: %${item.kdv}</span><span>${item.category}</span></div></div>
+                    <div class="detail-row text-[9px] border-t pt-2 space-y-1"><div class="flex justify-between font-bold text-gray-500 uppercase"><span>KDV: %${item.kdv}</span><span>${item.category}</span></div></div>
                 </div>`;
             };
 
@@ -187,7 +232,6 @@
             e.preventDefault();
             const editId = document.getElementById('edit-id').value;
             const status = document.getElementById('edit-status').value;
-            const code = document.getElementById('code').value;
             const unitType = document.getElementById('unitType').value;
             const amount = parseFloat(document.getElementById('amount').value);
             const price = parseFloat(document.getElementById('unitPrice').value);
@@ -195,7 +239,7 @@
             
             const item = {
                 id: editId || Date.now().toString(),
-                code: code,
+                code: document.getElementById('code').value,
                 productName: document.getElementById('productName').value,
                 unitType: unitType,
                 amount: cleanNum(finalAmount),
@@ -203,7 +247,7 @@
                 kdv: document.getElementById('kdv').value,
                 category: document.getElementById('category').value,
                 fullDate: new Date().toLocaleDateString('tr-TR'),
-                status: status, // Edit statüsü neyse o kalır
+                status: status,
                 total: (finalAmount * price).toFixed(2)
             };
 
@@ -227,15 +271,11 @@
         function editArchiveGroup(code) {
             const allReg = fires.filter(f => f.status === 'registered' && f.code === code);
             if(allReg.length === 0) return;
-            
             const totalAmount = allReg.reduce((sum, item) => sum + parseFloat(item.amount), 0);
             const baseItem = {...allReg[0], amount: totalAmount};
-
-            // Yedekle ve Arşivden Geçici Olarak Çıkar
             localStorage.setItem('archive_backup_' + code, JSON.stringify(allReg));
             fires = fires.filter(f => !(f.status === 'registered' && f.code === code));
-            
-            document.getElementById('edit-status').value = 'registered'; // Statüyü Arşiv olarak kilitle
+            document.getElementById('edit-status').value = 'registered';
             document.getElementById('is-archive-edit-code').value = code;
             fillForm(baseItem);
             render();
