@@ -1,15 +1,21 @@
 {
-  "name": "Fire Takip",
-  "short_name": "FireTakip",
-  "start_url": "./",
+  "name": "ATATÜRK CD. FİRE TAKİP",
+  "short_name": "Fire Takip",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f8fafc",
   "theme_color": "#334155",
+  "orientation": "portrait",
   "icons": [
     {
-      "src": "/2.png",
+      "src": "./2.png",
       "sizes": "192x192",
       "type": "image/png"
+    },
+    {
+      "src": "./2.png",
+      "sizes": "512x512",
+      "type": "image/png"
     }
-]
+  ]
 }
