@@ -1,0 +1,15 @@
+{
+  "name": "Fire Takip",
+  "short_name": "FireTakip",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#334155",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2936/2936769.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
