@@ -1,246 +1,150 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="tr">
 <head>
+ <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Atatürk Cd. Fire Takip V8.5</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATATÜRK CD. FİRE TAKİP</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; scroll-behavior: smooth; }
-        #reader { width: 100%; border: none !important; }
-        #reader video { border-radius: 1.5rem; }
-        .animate-in { animation: fadeIn 0.2s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        .detail-row { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-in-out; opacity: 0; }
-        .open .detail-row { max-height: 1000px; opacity: 1; margin-top: 10px; }
-        .can-open { cursor: pointer !important; }
+        :root { 
+            --bg: #f8fafc; --card: #ffffff; --primary: #334155; 
+            --rate-btn: #94a3b8; --edit-btn: #e2e8f0; --del-btn: #fda4af;
+        }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 15px; color: #1e293b; }
+        .container { max-width: 450px; margin: auto; }
+        .box { background: var(--card); padding: 20px; border-radius: 20px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .scanner-btn { background: var(--primary); color: white; padding: 15px; width: 100%; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; }
+        input { width: 100%; padding: 14px; margin: 6px 0; border: 1.5px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; }
+        .btn-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 6px 0; }
+        button { padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 10px; color: #334155; }
+        .active-sel { background: var(--primary) !important; color: white !important; transform: scale(1.02); }
+        .item-row { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
+        .history-list { display: none; padding: 10px; background: #f8fafc; border-radius: 8px; font-size: 11px; }
+        .cat-sum { color: #64748b; font-size: 11px; display: block; font-weight: bold; }
+        .total-sum { font-weight: 800; color: var(--primary); margin-top: 10px; border-top: 2px solid #e2e8f0; padding-top: 5px; font-size: 15px; }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-900 pb-32">
+<body>
 
-    <div class="max-w-xl mx-auto p-4 md:p-6 space-y-4">
-        <div class="flex justify-between items-end px-2">
-            <div>
-                <h1 class="text-2xl font-black tracking-tighter uppercase">ATATÜRK CD.</h1>
-                <p class="text-[8px] text-gray-400 font-bold uppercase tracking-widest">Full Kontrol v8.5</p>
-            </div>
-            <div class="text-right">
-                <span id="unregistered-total" class="text-xl font-black text-orange-600">0.00₺</span>
-                <p class="text-[7px] font-black text-gray-400 uppercase">BEKLEYEN</p>
-            </div>
-        </div>
-
-        <div id="scanner-container" class="hidden bg-white rounded-[2rem] shadow-2xl p-2 border-2 border-blue-500 animate-in">
-            <div id="reader"></div>
-            <button onclick="stopScanner()" class="w-full py-2 text-[10px] font-black text-red-500 uppercase">Kapat</button>
-        </div>
-        
-        <button id="start-scan-btn" onclick="startScanner()" class="w-full py-3 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase shadow-lg flex items-center justify-center gap-2">
-            <span>📷</span> BARKOD TARAT
-        </button>
-
-        <div class="bg-white rounded-[2.5rem] shadow-xl p-6 border border-gray-100">
-            <form id="fire-form" class="space-y-3" autocomplete="off">
-                <input type="hidden" id="edit-id">
-                <input type="hidden" id="edit-status" value="unregistered">
-                
-                <div class="grid grid-cols-2 gap-2">
-                    <input type="text" id="productName" list="prevProducts" placeholder="Ürün Adı" class="bg-gray-50 p-4 rounded-2xl outline-none font-bold text-sm border-2 border-transparent focus:border-blue-500" required onchange="autoFill(this.value)">
-                    <datalist id="prevProducts"></datalist>
-                    <input type="text" id="code" placeholder="Kod" class="bg-gray-50 p-4 rounded-2xl outline-none font-bold text-sm border-2 border-transparent focus:border-blue-500" required>
-                </div>
-
-                <div class="grid grid-cols-3 gap-2">
-                    <select id="unitType" class="bg-gray-50 p-4 rounded-2xl font-bold text-sm outline-none">
-                        <option value="gram">GRAM</option>
-                        <option value="Adet">ADET</option>
-                    </select>
-                    <input type="number" id="amount" step="any" placeholder="Miktar" class="col-span-2 bg-gray-50 p-4 rounded-2xl outline-none font-bold text-sm border-2 border-transparent focus:border-blue-500" required>
-                </div>
-
-                <div class="grid grid-cols-3 gap-2">
-                    <input type="number" step="0.01" id="unitPrice" placeholder="Birim Fiyat" class="col-span-2 bg-gray-50 p-4 rounded-2xl outline-none font-black text-blue-600 border-2 border-transparent focus:border-blue-500" required>
-                    <select id="kdv" class="bg-gray-50 p-4 rounded-2xl font-black text-orange-600 outline-none">
-                        <option value="1">%1</option>
-                        <option value="10">%10</option>
-                        <option value="20">%20</option>
-                    </select>
-                </div>
-
-                <select id="category" class="w-full bg-gray-50 p-4 rounded-2xl font-bold text-sm outline-none">
-                    <option value="Mağaza">Mağaza</option>
-                    <option value="Kırmızı Et">Kırmızı Et</option>
-                    <option value="Tavuk">Tavuk</option>
-                    <option value="SKT">SKT Ürün</option>
-                    <option value="Meyve Sebze">Meyve Sebze</option>
-                    <option value="Spot">Spot</option>
-                </select>
-
-                <div class="flex gap-2">
-                    <button type="submit" id="submit-btn" class="flex-1 py-4 bg-slate-900 text-white rounded-2xl font-black tracking-widest uppercase text-sm shadow-lg">LİSTEYE EKLE</button>
-                    <button type="button" id="cancel-edit-btn" onclick="finishForm()" class="hidden px-6 bg-red-100 text-red-600 rounded-2xl font-bold text-xs uppercase">Vazgeç</button>
-                </div>
-            </form>
-        </div>
-
-        <div id="unregistered-list" class="space-y-2"></div>
-        <button id="register-all-btn" onclick="registerAll()" class="hidden w-full py-4 bg-orange-500 text-white rounded-2xl font-black text-sm shadow-xl uppercase">Hepsini Onayla</button>
-        
-        <div id="reg-charts" class="grid grid-cols-2 gap-3 px-1"></div>
-
-        <div class="pt-6 border-t border-gray-200 space-y-3">
-            <input type="text" id="archiveSearch" oninput="render()" placeholder="Arşivde ara..." class="w-full bg-white p-3 rounded-xl text-xs font-bold outline-none border border-gray-200">
-        </div>
-
-        <div id="registered-list" class="space-y-2"></div>
-
-        <div class="bg-slate-900 rounded-[2.5rem] p-6 text-white shadow-2xl">
-            <p class="text-[8px] font-black text-slate-400 uppercase">TOPLAM ARŞİV</p>
-            <h3 id="archive-total" class="text-3xl font-black">0.00₺</h3>
-        </div>
+<div class="container">
+    <div class="box">
+        <div id="reader" style="width: 100%;"></div>
+        <button class="scanner-btn" onclick="window.startScanner()">TARA</button>
     </div>
 
-    <script>
-        let fires = [];
-        try {
-            fires = JSON.parse(localStorage.getItem('fireRecords')) || [];
-        } catch(e) { fires = []; }
+    <div class="box">
+        <input type="text" id="pCode" placeholder="Barkod" oninput="window.checkCode()">
+        <input type="text" id="pName" placeholder="Ürün İsmi">
+        <input type="text" id="pPrice" placeholder="Birim Fiyat">
+        <input type="number" id="pQty" placeholder="Adet / Gram">
+        
+        <div class="btn-grid" id="unitBtns">
+            <button onclick="select(this, 'unit', 'Adet')" style="background:#e2e8f0" class="active-sel">Adet</button>
+            <button onclick="select(this, 'unit', 'Gram')" style="background:#e2e8f0">Gram</button>
+        </div>
+        <div class="btn-grid" id="rateBtns">
+            <button onclick="select(this, 'rate', 1.01)" style="background:var(--rate-btn)" class="active-sel">%1</button>
+            <button onclick="select(this, 'rate', 1.10)" style="background:var(--rate-btn)">%10</button>
+            <button onclick="select(this, 'rate', 1.20)" style="background:var(--rate-btn)">%20</button>
+        </div>
+        <div class="btn-grid" id="catBtns">
+            <button onclick="select(this, 'cat', 'Et')" style="background:#e2e8f0" class="active-sel">Et</button>
+            <button onclick="select(this, 'cat', 'Tavuk')" style="background:#e2e8f0">Tavuk</button>
+            <button onclick="select(this, 'cat', 'SKT')" style="background:#e2e8f0">SKT</button>
+            <button onclick="select(this, 'cat', 'Mağaza')" style="background:#e2e8f0">Mağaza</button>
+            <button onclick="select(this, 'cat', 'Spot')" style="background:#e2e8f0">Spot</button>
+            <button onclick="select(this, 'cat', 'Sebze')" style="background:#e2e8f0">Sebze</button>
+        </div>
+        <button onclick="window.addItem()" style="background:var(--primary); color:white; width:100%; margin-top:10px; font-size:14px;">LİSTEYE EKLE</button>
+    </div>
 
-        let html5QrCode;
-        const cleanNum = (num) => isNaN(parseFloat(num)) ? 0 : parseFloat(parseFloat(num).toFixed(3));
+    <div id="pendingList" class="box"><h4>⏳ Bekleyenler</h4></div>
+    <button onclick="window.moveToArchive()" style="background:#cbd5e1; width:100%; padding:15px; font-size:14px; font-weight:700;">ONAYLA VE ARŞİVE AKTAR</button>
+    
+    <input type="text" id="search" placeholder="🔍 Arşivde Ara..." oninput="render()" style="margin-top:20px;">
+    <div id="archiveList" class="box" style="margin-top:15px;"><h4>📂 Arşiv</h4></div>
+</div>
 
-        function autoFill(val) {
-            const product = fires.find(f => f.productName === val);
-            if(product) {
-                document.getElementById('code').value = product.code || '';
-                document.getElementById('unitPrice').value = product.unitPrice || '';
-                document.getElementById('category').value = product.category || 'Mağaza';
-                document.getElementById('kdv').value = product.kdv || '1';
-                document.getElementById('unitType').value = product.unitType || 'gram';
-            }
-        }
+<script>
+    let pending = JSON.parse(localStorage.getItem('pending') || '[]');
+    let archive = JSON.parse(localStorage.getItem('archive') || '[]');
+    let unit='Adet', rate=1.01, cat='Et';
 
-        async function startScanner() {
-            document.getElementById('scanner-container').classList.remove('hidden');
-            html5QrCode = new Html5Qrcode("reader");
-            await html5QrCode.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, (text) => {
-                document.getElementById('code').value = text.trim();
-                const item = fires.find(f => f.code === text.trim());
-                if(item) { document.getElementById('productName').value = item.productName; autoFill(item.productName); }
-                stopScanner();
+    function save() { localStorage.setItem('pending', JSON.stringify(pending)); localStorage.setItem('archive', JSON.stringify(archive)); }
+    window.select = function(el, type, val) {
+        document.querySelectorAll(`#${type}Btns button`).forEach(b => b.classList.remove('active-sel'));
+        el.classList.add('active-sel');
+        if(type === 'unit') unit = val; if(type === 'rate') rate = val; if(type === 'cat') cat = val;
+    }
+    window.checkCode = function() {
+        let found = archive.find(i => i.code === document.getElementById('pCode').value) || pending.find(i => i.code === document.getElementById('pCode').value);
+        if(found) document.getElementById('pName').value = found.name;
+    }
+    window.addItem = function() {
+        let p = document.getElementById('pPrice').value, q = document.getElementById('pQty').value;
+        if(!p || !q) return;
+        let item = { code: document.getElementById('pCode').value, name: document.getElementById('pName').value, price: parseFloat(p.replace(',','.')), qty: parseFloat(q.replace(',','.')), unit, rate, cat, date: new Date().toLocaleTimeString() };
+        item.fire = (item.qty * item.price) / item.rate;
+        
+        let exist = pending.find(i => i.code === item.code);
+        if(exist) { exist.qty += item.qty; exist.fire += item.fire; exist.history.push(item); }
+        else { pending.push({...item, history: [item]}); }
+        save(); render();
+    }
+    window.render = function() {
+        const renderList = (arr, elId, title, type, isArchive) => {
+            let el = document.getElementById(elId); el.innerHTML = `<h4>${title}</h4>`;
+            let filter = isArchive ? document.getElementById('search').value.toLowerCase() : '';
+            let groups = {}, total = 0;
+            arr.filter(i => i.name.toLowerCase().includes(filter)).forEach((i, idx) => {
+                el.innerHTML += `<div class="item-row">
+                    <div onclick="document.getElementById('${elId}_h_${idx}').style.display='block'">
+                        ${i.code} <b>${i.name}</b> (${i.qty}${i.unit} x ${i.price}₺) | <b>${i.fire.toFixed(2)}₺</b>
+                    </div>
+                    <button style="background:var(--edit-btn); margin-top:5px;" onclick="window.edit('${type}', ${idx})">DÜZENLE</button>
+                    <button style="background:var(--del-btn); margin-top:5px;" onclick="window.del('${type}', ${idx})">SİL</button>
+                    <div id="${elId}_h_${idx}" class="history-list">${i.history.map(h => `<div>${h.date}: ${h.qty}${h.unit} x ${h.price}₺</div>`).join('')}</div>
+                </div>`;
+                groups[i.cat] = (groups[i.cat] || 0) + i.fire; total += i.fire;
             });
+            for(let g in groups) el.innerHTML += `<span class="cat-sum">${g}: ${groups[g].toFixed(2)}₺</span>`;
+            el.innerHTML += `<div class="total-sum">TOPLAM: ${total.toFixed(2)}₺</div>`;
         }
-
-        async function stopScanner() {
-            if (html5QrCode) await html5QrCode.stop();
-            document.getElementById('scanner-container').classList.add('hidden');
-        }
-
-        function render() {
-            const unreg = fires.filter(f => f.status === 'unregistered');
-            const allReg = fires.filter(f => f.status === 'registered');
-            const search = document.getElementById('archiveSearch').value.toLowerCase();
-
-            // Bekleyen Listesi
-            document.getElementById('unregistered-list').innerHTML = unreg.map(i => listTemplate(i)).join('');
-            
-            // Arşiv Listesi (Gruplanmış)
-            const groupedReg = allReg.reduce((acc, curr) => {
-                if (!acc[curr.code]) acc[curr.code] = { ...curr, total: 0, amount: 0 };
-                acc[curr.code].total += parseFloat(curr.total || 0);
-                acc[curr.code].amount += parseFloat(curr.amount || 0);
-                return acc;
-            }, {});
-
-            const filteredReg = Object.values(groupedReg).filter(i => 
-                (i.productName || "").toLowerCase().includes(search) || (i.code || "").includes(search)
-            );
-
-            document.getElementById('registered-list').innerHTML = filteredReg.map(i => listTemplate(i, true)).join('');
-            
-            // Toplamlar
-            document.getElementById('unregistered-total').innerText = unreg.reduce((a, b) => a + parseFloat(b.total || 0), 0).toFixed(2) + '₺';
-            document.getElementById('archive-total').innerText = allReg.reduce((a, b) => a + parseFloat(b.total || 0), 0).toFixed(2) + '₺';
-            document.getElementById('register-all-btn').classList.toggle('hidden', unreg.length === 0);
-        }
-
-        function listTemplate(item, isArchive = false) {
-            const displayAmt = item.unitType === 'gram' ? cleanNum(item.amount * 1000) + ' gr' : cleanNum(item.amount) + ' ad';
-            return `
-            <div class="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm animate-in can-open" onclick="this.classList.toggle('open')">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <span class="text-[8px] font-black text-blue-500 block">#${item.code}</span>
-                        <div class="text-[11px] font-black uppercase">${item.productName}</div>
-                        <span class="text-[9px] text-gray-400 font-bold">${displayAmt} x ${item.unitPrice}₺</span>
-                    </div>
-                    <div class="text-right flex items-center gap-2">
-                        <span class="font-black text-sm mr-1">${parseFloat(item.total || 0).toFixed(2)}₺</span>
-                        <button onclick="event.stopPropagation(); deleteRecord('${item.id}')" class="p-1.5 bg-gray-50 rounded-lg text-red-300">✕</button>
-                    </div>
-                </div>
-                <div class="detail-row text-[9px] border-t pt-2 flex justify-between font-bold text-gray-500 uppercase">
-                    <span>KDV: %${item.kdv || '1'}</span>
-                    <span>${item.category}</span>
-                </div>
-            </div>`;
-        }
-
-        document.getElementById('fire-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const amount = parseFloat(document.getElementById('amount').value);
-            const price = parseFloat(document.getElementById('unitPrice').value);
-            const kdv = document.getElementById('kdv').value;
-            const unitType = document.getElementById('unitType').value;
-            
-            let finalAmt = unitType === 'gram' ? amount / 1000 : amount;
-            let total = finalAmt * price;
-            
-            // KDV İndirim Hesaplama
-            if(kdv === "1") total /= 1.01;
-            else if(kdv === "10") total /= 1.10;
-            else if(kdv === "20") total /= 1.20;
-
-            const newItem = {
-                id: Date.now().toString(),
-                productName: document.getElementById('productName').value,
-                code: document.getElementById('code').value,
-                amount: cleanNum(finalAmt),
-                unitPrice: price,
-                unitType: unitType,
-                kdv: kdv,
-                category: document.getElementById('category').value,
-                total: total.toFixed(2),
-                status: 'unregistered'
-            };
-
-            fires.unshift(newItem);
-            localStorage.setItem('fireRecords', JSON.stringify(fires));
-            finishForm();
+        renderList(pending, 'pendingList', '⏳ Bekleyenler', 'pending', false);
+        renderList(archive, 'archiveList', '📂 Arşiv', 'archive', true);
+    }
+    window.edit = function(type, idx) {
+        let list = (type === 'pending' ? pending : archive);
+        let item = list[idx];
+        document.getElementById('pCode').value = item.code; document.getElementById('pName').value = item.name;
+        document.getElementById('pPrice').value = item.price; document.getElementById('pQty').value = item.qty;
+        list.splice(idx, 1); save(); render();
+    }
+    window.del = function(type, idx) { (type === 'pending' ? pending : archive).splice(idx, 1); save(); render(); }
+    window.moveToArchive = function() {
+        pending.forEach(p => {
+            let exist = archive.find(a => a.code === p.code);
+            if(exist) { exist.qty += p.qty; exist.fire += p.fire; exist.history.push(...p.history); }
+            else { archive.push(p); }
         });
-
-        function registerAll() {
-            fires = fires.map(f => ({...f, status: 'registered'}));
-            localStorage.setItem('fireRecords', JSON.stringify(fires));
-            render();
-        }
-
-        function deleteRecord(id) {
-            if(confirm('Silinsin mi?')) {
-                fires = fires.filter(f => f.id !== id);
-                localStorage.setItem('fireRecords', JSON.stringify(fires));
-                render();
-            }
-        }
-
-        function finishForm() {
-            document.getElementById('fire-form').reset();
-            render();
-        }
-
-        window.onload = render;
-    </script>
+        pending = []; save(); render();
+    }
+    window.startScanner = function() {
+        const scanner = new Html5Qrcode("reader");
+        scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: {width: 200, height: 150} }, (t) => {
+            let p = t.split('-'); document.getElementById('pCode').value = p[0];
+            if(p[1]) document.getElementById('pPrice').value = p[1];
+            window.checkCode(); scanner.stop();
+        });
+    }
+    render();
+</script>
+ <script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js');
+    }
+ </script>
+ 
 </body>
 </html>
