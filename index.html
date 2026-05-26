@@ -75,35 +75,75 @@
     let unit='Adet', rate=1.01, cat='Et';
 
     function save() { localStorage.setItem('pending', JSON.stringify(pending)); localStorage.setItem('archive', JSON.stringify(archive)); }
+    
     window.select = function(el, type, val) {
         document.querySelectorAll(`#${type}Btns button`).forEach(b => b.classList.remove('active-sel'));
         el.classList.add('active-sel');
         if(type === 'unit') unit = val; if(type === 'rate') rate = val; if(type === 'cat') cat = val;
     }
+    
     window.checkCode = function() {
         let found = archive.find(i => i.code === document.getElementById('pCode').value) || pending.find(i => i.code === document.getElementById('pCode').value);
         if(found) document.getElementById('pName').value = found.name;
     }
+    
     window.addItem = function() {
         let p = document.getElementById('pPrice').value, q = document.getElementById('pQty').value;
         if(!p || !q) return;
-        let item = { code: document.getElementById('pCode').value, name: document.getElementById('pName').value, price: parseFloat(p.replace(',','.')), qty: parseFloat(q.replace(',','.')), unit, rate, cat, date: new Date().toLocaleTimeString() };
-        item.fire = (item.qty * item.price) / item.rate;
+        
+        let priceNum = parseFloat(p.replace(',','.'));
+        let qtyNum = parseFloat(q.replace(',','.'));
+        
+        // Eğer gram seçiliyse kg'ye çevirip fiyatlandır
+        let calcQty = unit === 'Gram' ? (qtyNum / 1000) : qtyNum;
+        
+        let item = { 
+            code: document.getElementById('pCode').value, 
+            name: document.getElementById('pName').value, 
+            price: priceNum, 
+            qty: qtyNum, 
+            unit, rate, cat, 
+            date: new Date().toLocaleTimeString() 
+        };
+        
+        // Yeni hesaplama
+        item.fire = (calcQty * item.price) / item.rate;
         
         let exist = pending.find(i => i.code === item.code);
-        if(exist) { exist.qty += item.qty; exist.fire += item.fire; exist.history.push(item); }
-        else { pending.push({...item, history: [item]}); }
-        save(); render();
+        if(exist) { 
+            exist.qty += item.qty; 
+            exist.fire += item.fire; 
+            exist.history.push(item); 
+        } else { 
+            pending.push({...item, history: [item]}); 
+        }
+        
+        save(); 
+        render();
+
+        // Girdileri sıfırla
+        document.getElementById('pCode').value = '';
+        document.getElementById('pName').value = '';
+        document.getElementById('pPrice').value = '';
+        document.getElementById('pQty').value = '';
+        
+        // Açık olan klavyeyi kapatmak / doğrudan ekrana odaklanmak için
+        if (document.activeElement) {
+            document.activeElement.blur();
+        }
     }
+    
     window.render = function() {
         const renderList = (arr, elId, title, type, isArchive) => {
             let el = document.getElementById(elId); el.innerHTML = `<h4>${title}</h4>`;
             let filter = isArchive ? document.getElementById('search').value.toLowerCase() : '';
             let groups = {}, total = 0;
             arr.filter(i => i.name.toLowerCase().includes(filter)).forEach((i, idx) => {
+                let displayRate = Math.round((i.rate - 1) * 100); // Oranı %'lik değere geri çevir
+                
                 el.innerHTML += `<div class="item-row">
                     <div onclick="document.getElementById('${elId}_h_${idx}').style.display='block'">
-                        ${i.code} <b>${i.name}</b> (${i.qty}${i.unit} x ${i.price}₺) | <b>${i.fire.toFixed(2)}₺</b>
+                        ${i.code} <b>${i.name}</b> (${i.qty}${i.unit} x ${i.price}₺) | <b>%${displayRate}</b> | <b>${i.fire.toFixed(2)}₺</b>
                     </div>
                     <button style="background:var(--edit-btn); margin-top:5px;" onclick="window.edit('${type}', ${idx})">DÜZENLE</button>
                     <button style="background:var(--del-btn); margin-top:5px;" onclick="window.del('${type}', ${idx})">SİL</button>
@@ -117,6 +157,7 @@
         renderList(pending, 'pendingList', '⏳ Bekleyenler', 'pending', false);
         renderList(archive, 'archiveList', '📂 Arşiv', 'archive', true);
     }
+    
     window.edit = function(type, idx) {
         let list = (type === 'pending' ? pending : archive);
         let item = list[idx];
@@ -124,7 +165,9 @@
         document.getElementById('pPrice').value = item.price; document.getElementById('pQty').value = item.qty;
         list.splice(idx, 1); save(); render();
     }
+    
     window.del = function(type, idx) { (type === 'pending' ? pending : archive).splice(idx, 1); save(); render(); }
+    
     window.moveToArchive = function() {
         pending.forEach(p => {
             let exist = archive.find(a => a.code === p.code);
@@ -133,6 +176,7 @@
         });
         pending = []; save(); render();
     }
+    
     window.startScanner = function() {
         const scanner = new Html5Qrcode("reader");
         scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: {width: 200, height: 150} }, (t) => {
